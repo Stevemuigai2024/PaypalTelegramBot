@@ -135,5 +135,5 @@ def webhook():
 
 if __name__ == "__main__":
     # Set the webhook
-    bot.set_webhook(f"https://<your-domain>/webhook")
+    bot.set_webhook(f"https://paypaltelegrambot.onrender.com/webhook")
     app.run(host='0.0.0.0', port=port)
