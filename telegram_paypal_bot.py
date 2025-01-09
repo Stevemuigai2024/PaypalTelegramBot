@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
+from telegram import Bot
 from dotenv import load_dotenv
 import os
 
@@ -9,6 +10,14 @@ import paypalrestsdk
 import json
 import logging
 import asyncio
+
+TOKEN = "7306291870:AAFNCh5WecIUpMblZcqoXYcdUM8qZM7xifM"  # Replace with your token
+bot = Bot(token=TOKEN)
+
+try:
+    print(bot.get_me())
+except Exception as e:
+    print(f"Error: {e}")
 
 # Load environment variables
 load_dotenv()
