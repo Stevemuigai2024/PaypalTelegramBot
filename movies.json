@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "title": "Inception",
+    "description": "A thief with the ability to enter people's dreams and steal secrets from their subconscious.",
+    "price": 10.99,
+    "preview_video": "https://example.com/previews/inception.mp4",
+    "download_link": "https://example.com/downloads/inception"
+  },
+  {
+    "id": "2",
+    "title": "The Dark Knight",
+    "description": "Batman raises the stakes in his war on crime with the help of Lieutenant Jim Gordon and District Attorney Harvey Dent.",
+    "price": 8.99,
+    "preview_video": "https://example.com/previews/dark-knight.mp4",
+    "download_link": "https://example.com/downloads/dark-knight"
+  }
+]
