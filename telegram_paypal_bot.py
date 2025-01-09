@@ -2,10 +2,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
-from flask import Flask
+from flask import Flask, request
 from dotenv import load_dotenv
 import os
-
 import paypalrestsdk
 import json
 import logging
@@ -30,12 +29,9 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
 
+# Create bot and application
 bot = Bot(token=BOT_TOKEN)
-
-try:
-    print(bot.get_me())
-except Exception as e:
-    print(f"Error: {e}")
+application = Application.builder().token(BOT_TOKEN).build()
 
 # Configure PayPal
 paypalrestsdk.configure({
@@ -126,19 +122,18 @@ async def send_download_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if movie:
         await update.message.reply_text(f"Thank you for your purchase! 🎉\nHere is your download link: {movie['download_link']}")
 
-# Main function
-def main():
-    # Create application
-    application = Application.builder().token(BOT_TOKEN).build()
+# Add handlers
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
+application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
 
-    # Add handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
-    application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
-
-    # Start the bot
-    application.run_polling()
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    application.process_update(update)
+    return 'ok', 200
 
 if __name__ == "__main__":
-    main()
+    # Set the webhook
+    bot.set_webhook(f"https://<your-domain>/webhook")
     app.run(host='0.0.0.0', port=port)
