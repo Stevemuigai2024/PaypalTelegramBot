@@ -2,6 +2,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
+from dotenv import load_dotenv
+load_dotenv()
+
 import paypalrestsdk
 import json
 import logging
