@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot  # Added Bot import
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
