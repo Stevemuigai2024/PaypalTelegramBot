@@ -2,22 +2,12 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
-from telegram import Bot
 from dotenv import load_dotenv
 import os
 
 import paypalrestsdk
 import json
 import logging
-import asyncio
-
-TOKEN = "7306291870:AAFNCh5WecIUpMblZcqoXYcdUM8qZM7xifM"  # Replace with your token
-bot = Bot(token=TOKEN)
-
-try:
-    print(bot.get_me())
-except Exception as e:
-    print(f"Error: {e}")
 
 # Load environment variables
 load_dotenv()
@@ -31,6 +21,12 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
 
+bot = Bot(token=BOT_TOKEN)
+
+try:
+    print(bot.get_me())
+except Exception as e:
+    print(f"Error: {e}")
 
 # Configure PayPal
 paypalrestsdk.configure({
@@ -124,7 +120,7 @@ async def send_download_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # Main function
 def main():
     # Create application
-    application = Application.builder().token("YOUR_TELEGRAM_BOT_TOKEN").build()
+    application = Application.builder().token(BOT_TOKEN).build()
 
     # Add handlers
     application.add_handler(CommandHandler("start", start))
