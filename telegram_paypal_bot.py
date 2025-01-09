@@ -64,7 +64,7 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     movie = next((m for m in movies if m["id"] == movie_id), None)
 
     if movie:
-        text = f"*{movie['title']}*\n{movie['description']}*\nPrice: ${movie['price']}"
+        text = f"*{movie['title']}*\n{movie['description']}\nPrice: ${movie['price']}"
         keyboard = [[InlineKeyboardButton("Buy Now", callback_data=f"buy_{movie['id']}")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.message.reply_photo(photo=movie["cover"], caption=text, parse_mode="Markdown", reply_markup=reply_markup)
@@ -141,4 +141,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-   app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)
