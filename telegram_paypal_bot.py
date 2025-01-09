@@ -46,6 +46,7 @@ with open('movies.json', 'r') as file:
 
 # Start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info("Start command received.")
     welcome_text = "Welcome to MovieBot! 🎬\nBrowse and buy movies easily."
     keyboard = [[InlineKeyboardButton(movie["title"], callback_data=f"movie_{movie['id']}") for movie in movies]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -55,6 +56,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    logger.info("Movie details callback received.")
 
     movie_id = query.data.split("_")[1]
     movie = next((m for m in movies if m["id"] == movie_id), None)
@@ -64,11 +66,14 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("Buy Now", callback_data=f"buy_{movie['id']}")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.message.reply_photo(photo=movie["cover"], caption=text, parse_mode="Markdown", reply_markup=reply_markup)
+    else:
+        logger.error(f"Movie with ID {movie_id} not found.")
 
 # Handle purchase
 async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    logger.info("Purchase callback received.")
 
     movie_id = query.data.split("_")[1]
     movie = next((m for m in movies if m["id"] == movie_id), None)
@@ -79,8 +84,8 @@ async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "intent": "sale",
             "payer": {"payment_method": "paypal"},
             "redirect_urls": {
-                "return_url": "https://yourserver.com/payment/return",
-                "cancel_url": "https://yourserver.com/payment/cancel"
+                "return_url": "https://your-app.onrender.com/payment/return",
+                "cancel_url": "https://your-app.onrender.com/payment/cancel"
             },
             "transactions": [{
                 "item_list": {
@@ -111,16 +116,8 @@ async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             logger.error(payment.error)
             await query.message.reply_text("Payment creation failed. Please try again later.")
-
-# After successful payment, send download link
-async def send_download_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Verify payment using PayPal SDK or webhook listener
-    # Placeholder logic for actual verification
-    movie_id = "1"  # Replace with dynamic extraction from payment metadata
-    movie = next((m for m in movies if m["id"] == movie_id), None)
-
-    if movie:
-        await update.message.reply_text(f"Thank you for your purchase! 🎉\nHere is your download link: {movie['download_link']}")
+    else:
+        logger.error(f"Movie with ID {movie_id} not found.")
 
 # Add handlers
 application.add_handler(CommandHandler("start", start))
@@ -135,5 +132,5 @@ def webhook():
 
 if __name__ == "__main__":
     # Set the webhook
-    bot.set_webhook(f"https://paypaltelegrambot.onrender.com/webhook")
+    bot.set_webhook("https://your-app.onrender.com/webhook")
     app.run(host='0.0.0.0', port=port)
