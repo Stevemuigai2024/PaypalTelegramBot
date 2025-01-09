@@ -1,7 +1,8 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot  # Added Bot import
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
+from flask import Flask
 from dotenv import load_dotenv
 import os
 
@@ -11,6 +12,14 @@ import logging
 
 # Load environment variables
 load_dotenv()
+
+app = Flask(__name__)
+
+port = int(os.getenv("PORT", 10000))
+
+@app.route('/')
+def home():
+    return 'Hello World!'
 
 # Configure logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
@@ -31,8 +40,8 @@ except Exception as e:
 # Configure PayPal
 paypalrestsdk.configure({
     "mode": "sandbox",  # Change to "live" for production
-    "client_id": "AUJyNrn8-dgBmGkibJj2Wv0fO4iiKh5uE5rRn5szxdkNHdGrnUZm9RUilZ5LusIYXoFoHABzN1-5xV89",  # Replace with your PayPal Client ID
-    "client_secret": "EKb8-RBtQvzF0YHoZ1rslR7-BSIQM2hD2qbWhJQNk-F22GF3Vit-OKtiaWirKOTgHfcHdCxK_DO62hEJ"  # Replace with your PayPal Client Secret
+    "client_id": os.getenv("PAYPAL_CLIENT_ID"),  # Load from environment
+    "client_secret": os.getenv("PAYPAL_CLIENT_SECRET")  # Load from environment
 })
 
 # Load movies database
@@ -55,7 +64,7 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     movie = next((m for m in movies if m["id"] == movie_id), None)
 
     if movie:
-        text = f"*{movie['title']}*\n{movie['description']}\nPrice: ${movie['price']}"
+        text = f"*{movie['title']}*\n{movie['description']}*\nPrice: ${movie['price']}"
         keyboard = [[InlineKeyboardButton("Buy Now", callback_data=f"buy_{movie['id']}")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.message.reply_photo(photo=movie["cover"], caption=text, parse_mode="Markdown", reply_markup=reply_markup)
@@ -132,3 +141,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    app.run(port=port)
