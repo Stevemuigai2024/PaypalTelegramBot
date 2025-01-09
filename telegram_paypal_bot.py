@@ -1,5 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, CallbackContext
+from telegram.ext import filters  # Updated import for filters
 import paypalrestsdk
 import json
 import logging
@@ -39,9 +40,7 @@ def movie_details(update: Update, context: CallbackContext):
         text = f"*{movie['title']}*\n{movie['description']}\nPrice: ${movie['price']}"
         keyboard = [[InlineKeyboardButton("Buy Now", callback_data=f"buy_{movie['id']}")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-
-        # Send the video preview instead of a cover photo
-        query.message.reply_video(video=movie["preview_video"], caption=text, parse_mode="Markdown", reply_markup=reply_markup)
+        query.message.reply_photo(photo=movie["cover"], caption=text, parse_mode="Markdown", reply_markup=reply_markup)
 
 # Handle purchase
 def handle_purchase(update: Update, context: CallbackContext):
