@@ -3,16 +3,25 @@ from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
 from dotenv import load_dotenv
-load_dotenv()
+import os
 
 import paypalrestsdk
 import json
 import logging
 import asyncio
 
+# Load environment variables
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Load bot token from environment
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
+
 
 # Configure PayPal
 paypalrestsdk.configure({
