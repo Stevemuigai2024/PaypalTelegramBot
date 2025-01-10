@@ -1,6 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import (
-    Application, CommandHandler, CallbackQueryHandler, ContextTypes
+    Application, CommandHandler, CallbackQueryHandler, ContextTypes, ErrorHandler
 )
 from flask import Flask, request
 from dotenv import load_dotenv
@@ -33,7 +33,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -55,6 +55,13 @@ paypalrestsdk.configure({
 # Load movies database
 with open('movies.json', 'r') as file:
     movies = json.load(file)
+
+# Error handler function
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.error(msg="Exception while handling an update:", exc_info=context.error)
+
+# Add error handler
+application.add_error_handler(ErrorHandler(error_handler))
 
 # Start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
