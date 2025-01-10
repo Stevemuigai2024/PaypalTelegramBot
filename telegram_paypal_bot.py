@@ -164,9 +164,17 @@ application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
 application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
 
 def run_app():
+    logger.info(f"Starting Flask app on port {port}")
     app.run(host='0.0.0.0', port=port, use_reloader=False)
 
 def main():
     webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
     asyncio.run(bot.set_webhook(webhook_url))
-    logger.info
+    logger.info(f"Webhook set to {webhook_url}")
+
+    asyncio.run(initialize_bot())
+    asyncio.run(application.initialize())
+    run_app()
+
+if __name__ == "__main__":
+    main()
