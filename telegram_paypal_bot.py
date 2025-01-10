@@ -32,7 +32,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message=s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -175,8 +175,10 @@ def main():
     asyncio.run(bot.set_webhook(webhook_url))
     logger.info(f"Webhook set to {webhook_url}")
 
-    asyncio.run(initialize_bot())
-    asyncio.run(application.initialize())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(initialize_bot())
+    loop.run_until_complete(application.initialize())
     run_app()
 
 if __name__ == "__main__":
