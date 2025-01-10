@@ -9,6 +9,8 @@ import paypalrestsdk
 import json
 import logging
 import asyncio
+from telegram.request import Request
+from telegram.error import BadRequest
 
 # Load environment variables
 load_dotenv()
@@ -42,16 +44,16 @@ if not BOT_TOKEN:
     raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
 
 # Increase connection pool size and timeout
-request_kwargs = {
-    'connection_pool_size': 16,  # Increase the pool size as needed
-    'connect_timeout': 10,
-    'read_timeout': 10,
-    'pool_timeout': 10
-}
+request = Request(
+    connection_pool_size=16,  # Increase the pool size as needed
+    connect_timeout=10,
+    read_timeout=10,
+    pool_timeout=10
+)
 
 # Create bot and application
-bot = Bot(token=BOT_TOKEN, request_kwargs=request_kwargs)
-application = Application.builder().token(BOT_TOKEN).request_kwargs(request_kwargs).build()
+bot = Bot(token=BOT_TOKEN, request=request)
+application = Application.builder().token(BOT_TOKEN).request(request).build()
 
 # Configure PayPal
 paypalrestsdk.configure({
