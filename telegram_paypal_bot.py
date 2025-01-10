@@ -35,7 +35,7 @@ def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levellevel)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -45,10 +45,10 @@ if not BOT_TOKEN:
 
 # Increase connection pool size and timeout using HTTPXRequest
 request = HTTPXRequest(
-    connection_pool_size=16,  # Increase the pool size as needed
-    connect_timeout=10,
-    read_timeout=10,
-    pool_timeout=10
+    connection_pool_size=32,  # Increase the pool size further
+    connect_timeout=20,
+    read_timeout=20,
+    pool_timeout=20
 )
 
 # Create bot and application
