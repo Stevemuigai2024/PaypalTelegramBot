@@ -27,8 +27,7 @@ def webhook():
     logger.info(f"Request JSON: {request.get_json()}")
     try:
         update = Update.de_json(request.get_json(force=True), bot)
-        asyncio.run(application.initialize())
-        asyncio.run(application.process_update(update))
+        asyncio.create_task(application.process_update(update))
     except Exception as e:
         logger.error(f"Error processing update: {e}")
     return 'ok', 200
@@ -90,62 +89,4 @@ async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Create PayPal payment
         payment = paypalrestsdk.Payment({
             "intent": "sale",
-            "payer": {"payment_method": "paypal"},
-            "redirect_urls": {
-                "return_url": "https://paypaltelegrambot.onrender.com/payment/return",
-                "cancel_url": "https://paypaltelegrambot.onrender.com/payment/cancel"
-            },
-            "transactions": [{
-                "item_list": {
-                    "items": [{
-                        "name": movie["title"],
-                        "sku": movie["id"],
-                        "price": str(movie["price"]),
-                        "currency": "USD",
-                        "quantity": 1
-                    }]
-                },
-                "amount": {
-                    "total": str(movie["price"]),
-                    "currency": "USD"
-                },
-                "description": movie["description"]
-            }]
-        })
-
-        if payment.create():
-            for link in payment.links:
-                if link.rel == "approval_url":
-                    approval_url = link.href
-                    keyboard = [[InlineKeyboardButton("Pay with PayPal", url=approval_url)]]
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-                    await query.message.reply_text("Click below to complete your purchase:", reply_markup=reply_markup)
-                    return
-        else:
-            logger.error(payment.error)
-            await query.message.reply_text("Payment creation failed. Please try again later.")
-
-# After successful payment, send download link
-async def send_download_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Verify payment using PayPal SDK or webhook listener
-    # Placeholder logic for actual verification
-    movie_id = "1"  # Replace with dynamic extraction from payment metadata
-    movie = next((m for m in movies if m["id"] == movie_id), None)
-
-    if movie:
-        await update.message.reply_text(f"Thank you for your purchase! 🎉\nHere is your download link: {movie['download_link']}")
-
-# Add handlers
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
-application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
-
-async def set_webhook():
-    webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
-    await bot.set_webhook(webhook_url)
-    logger.info(f"Webhook set to {webhook_url}")
-
-if __name__ == "__main__":
-    asyncio.run(set_webhook())
-    asyncio.run(application.initialize())
-    app.run(host='0.0.0.0', port=port)
+            "payer": {"payment_method": "paypal
