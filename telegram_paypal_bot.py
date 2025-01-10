@@ -22,8 +22,12 @@ def home():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    application.process_update(update)
+    logger.info("Webhook received")
+    try:
+        update = Update.de_json(request.get_json(force=True), bot)
+        application.process_update(update)
+    except Exception as e:
+        logger.error(f"Error processing update: {e}")
     return 'ok', 200
 
 # Configure logging
@@ -85,8 +89,8 @@ async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "intent": "sale",
             "payer": {"payment_method": "paypal"},
             "redirect_urls": {
-                "return_url": "https://your-app.onrender.com/payment/return",
-                "cancel_url": "https://your-app.onrender.com/payment/cancel"
+                "return_url": "https://paypaltelegrambot.onrender.com/payment/return",
+                "cancel_url": "https://paypaltelegrambot.onrender.com/payment/cancel"
             },
             "transactions": [{
                 "item_list": {
@@ -135,5 +139,7 @@ application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
 
 if __name__ == "__main__":
     # Set the webhook
-    bot.set_webhook(f"https://paypaltelegrambot.onrender.com/webhook")
+    webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
+    bot.set_webhook(webhook_url)
+    logger.info(f"Webhook set to {webhook_url}")
     app.run(host='0.0.0.0', port=port)
