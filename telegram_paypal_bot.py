@@ -22,12 +22,12 @@ def home():
     return 'Hello World!'
 
 @app.route('/webhook', methods=['POST'])
-def webhook():
+async def webhook():
     logger.info("Webhook received")
     logger.info(f"Request JSON: {request.get_json()}")
     try:
         update = Update.de_json(request.get_json(force=True), bot)
-        asyncio.create_task(application.process_update(update))
+        await application.process_update(update)
     except Exception as e:
         logger.error(f"Error processing update: {e}")
     return 'ok', 200
@@ -146,5 +146,5 @@ async def set_webhook():
 
 if __name__ == "__main__":
     asyncio.run(set_webhook())
-    asyncio.run(application.initialize())
+    await application.initialize()
     app.run(host='0.0.0.0', port=port)
