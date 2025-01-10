@@ -1,6 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import (
-    Application, CommandHandler, CallbackQueryHandler, ContextTypes, ErrorHandler
+    Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
 from flask import Flask, request
 from dotenv import load_dotenv
@@ -61,7 +61,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     logger.error(msg="Exception while handling an update:", exc_info=context.error)
 
 # Add error handler
-application.add_error_handler(ErrorHandler(error_handler))
+application.add_error_handler(error_handler)
 
 # Start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
