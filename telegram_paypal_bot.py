@@ -18,7 +18,7 @@ app = Flask(__name__)
 port = int(os.getenv("PORT", 10000))
 
 @app.route('/')
-def home():
+async def home():
     return 'Hello World!'
 
 @app.route('/webhook', methods=['POST'])
@@ -33,7 +33,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
