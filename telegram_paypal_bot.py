@@ -2,7 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler, ContextTypes
 )
-from flask import Flask, request
+from flask import Flask, request as flask_request
 from dotenv import load_dotenv
 import os
 import paypalrestsdk
@@ -25,9 +25,9 @@ async def home():
 @app.route('/webhook', methods=['POST'])
 async def webhook():
     logger.info("Webhook received")
-    logger.info(f"Request JSON: {request.get_json()}")
+    logger.info(f"Request JSON: {flask_request.get_json()}")
     try:
-        update = Update.de_json(request.get_json(force=True), bot)
+        update = Update.de_json(flask_request.get_json(force=True), bot)
         await application.process_update(update)
     except Exception as e:
         logger.error(f"Error processing update: {e}")
