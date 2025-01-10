@@ -9,7 +9,7 @@ import paypalrestsdk
 import json
 import logging
 import asyncio
-from telegram.request import Request
+import httpx
 from telegram.error import BadRequest
 
 # Load environment variables
@@ -35,7 +35,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message=s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -43,17 +43,15 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
 
-# Increase connection pool size and timeout
-request = Request(
-    connection_pool_size=16,  # Increase the pool size as needed
-    connect_timeout=10,
-    read_timeout=10,
-    pool_timeout=10
+# Customizing httpx client
+httpx_client = httpx.AsyncClient(
+    limits=httpx.Limits(max_connections=16),
+    timeout=httpx.Timeout(10.0, connect=10.0, read=10.0)
 )
 
 # Create bot and application
-bot = Bot(token=BOT_TOKEN, request=request)
-application = Application.builder().token(BOT_TOKEN).request(request).build()
+bot = Bot(token=BOT_TOKEN, request=httpx_client)
+application = Application.builder().token(BOT_TOKEN).request(httpx_client).build()
 
 # Configure PayPal
 paypalrestsdk.configure({
