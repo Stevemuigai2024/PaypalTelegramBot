@@ -45,10 +45,10 @@ if not BOT_TOKEN:
 
 # Increase connection pool size and timeout using HTTPXRequest
 request = HTTPXRequest(
-    connection_pool_size=32,  # Increase the pool size further
-    connect_timeout=20,
-    read_timeout=20,
-    pool_timeout=20
+    connection_pool_size=64,  # Increase the pool size further
+    connect_timeout=30,
+    read_timeout=30,
+    pool_timeout=30
 )
 
 # Create bot and application
