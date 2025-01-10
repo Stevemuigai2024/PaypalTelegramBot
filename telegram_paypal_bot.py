@@ -41,6 +41,10 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
 
+# Initialize bot
+async def initialize_bot():
+    await bot.initialize()
+
 # Create bot and application
 bot = Bot(token=BOT_TOKEN)
 application = Application.builder().token(BOT_TOKEN).build()
@@ -151,6 +155,7 @@ async def main():
     await bot.set_webhook(webhook_url)
     logger.info(f"Webhook set to {webhook_url}")
 
+    await initialize_bot()
     await application.initialize()
     app.run(host='0.0.0.0', port=port)
 
