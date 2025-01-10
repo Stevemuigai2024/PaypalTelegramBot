@@ -32,7 +32,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -162,6 +162,9 @@ async def send_download_link(update: Update, context: ContextTypes.DEFAULT_TYPE)
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
 application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
+
+async def initialize_bot():
+    await bot.initialize()
 
 def run_app():
     logger.info(f"Starting Flask app on port {port}")
