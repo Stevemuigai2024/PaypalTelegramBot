@@ -1,7 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
-from telegram.ext import (
-    Application, CommandHandler, CallbackQueryHandler, ContextTypes
-)
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from flask import Flask, request as flask_request
 from dotenv import load_dotenv
 import os
@@ -16,7 +14,6 @@ from telegram.error import BadRequest
 load_dotenv()
 
 app = Flask(__name__)
-
 port = int(os.getenv("PORT", 10000))
 
 @app.route('/')
@@ -176,6 +173,8 @@ async def main():
 
     await initialize_bot()
     await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
     app.run(host='0.0.0.0', port=port)
 
 if __name__ == "__main__":
