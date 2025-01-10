@@ -20,16 +20,16 @@ app = Flask(__name__)
 port = int(os.getenv("PORT", 10000))
 
 @app.route('/')
-def home():
+async def home():
     return 'Hello World!'
 
 @app.route('/webhook', methods=['POST'])
-def webhook():
+async def webhook():
     logger.info("Webhook received")
     logger.info(f"Request JSON: {flask_request.get_json()}")
     try:
         update = Update.de_json(flask_request.get_json(force=True), bot)
-        asyncio.run(application.process_update(update))
+        await application.process_update(update)
     except Exception as e:
         logger.error(f"Error processing update: {e}")
     return 'ok', 200
