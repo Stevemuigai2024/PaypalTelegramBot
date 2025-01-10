@@ -23,6 +23,7 @@ def home():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     logger.info("Webhook received")
+    logger.info(f"Request JSON: {request.get_json()}")
     try:
         update = Update.de_json(request.get_json(force=True), bot)
         application.process_update(update)
