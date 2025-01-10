@@ -8,6 +8,7 @@ import os
 import paypalrestsdk
 import json
 import logging
+import asyncio
 
 # Load environment variables
 load_dotenv()
@@ -26,7 +27,7 @@ def webhook():
     logger.info(f"Request JSON: {request.get_json()}")
     try:
         update = Update.de_json(request.get_json(force=True), bot)
-        application.process_update(update)
+        asyncio.run(application.process_update(update))
     except Exception as e:
         logger.error(f"Error processing update: {e}")
     return 'ok', 200
@@ -138,9 +139,11 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
 application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
 
-if __name__ == "__main__":
-    # Set the webhook
+async def set_webhook():
     webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
-    bot.set_webhook(webhook_url)
+    await bot.set_webhook(webhook_url)
     logger.info(f"Webhook set to {webhook_url}")
+
+if __name__ == "__main__":
+    asyncio.run(set_webhook())
     app.run(host='0.0.0.0', port=port)
