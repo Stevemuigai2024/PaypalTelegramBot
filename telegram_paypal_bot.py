@@ -27,13 +27,14 @@ def webhook():
     logger.info(f"Request JSON: {request.get_json()}")
     try:
         update = Update.de_json(request.get_json(force=True), bot)
+        asyncio.run(application.initialize())
         asyncio.run(application.process_update(update))
     except Exception as e:
         logger.error(f"Error processing update: {e}")
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name=s - %(levelname=s - %(message=s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -146,4 +147,5 @@ async def set_webhook():
 
 if __name__ == "__main__":
     asyncio.run(set_webhook())
+    asyncio.run(application.initialize())
     app.run(host='0.0.0.0', port=port)
