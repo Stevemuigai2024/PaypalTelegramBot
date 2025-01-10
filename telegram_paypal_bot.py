@@ -163,17 +163,10 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
 application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
 
-async def initialize_bot():
-    await bot.initialize()
+def run_app():
+    app.run(host='0.0.0.0', port=port, use_reloader=False)
 
-async def main():
+def main():
     webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
-    await bot.set_webhook(webhook_url)
-    logger.info(f"Webhook set to {webhook_url}")
-
-    await initialize_bot()
-    await application.initialize()
-    app.run(host='0.0.0.0', port=port)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(bot.set_webhook(webhook_url))
+    logger.info
