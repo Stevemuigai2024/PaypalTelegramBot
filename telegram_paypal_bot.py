@@ -9,6 +9,7 @@ import paypalrestsdk
 import json
 import logging
 import asyncio
+from telegram.error import BadRequest
 
 # Load environment variables
 load_dotenv()
@@ -77,7 +78,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Handle movie selection
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except BadRequest as e:
+        logger.error(f"Failed to answer callback query: {e}")
 
     movie_id = query.data.split("_")[1]
     movie = next((m for m in movies if m["id"] == movie_id), None)
@@ -91,7 +95,10 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Handle purchase
 async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    try:
+        await query.answer()
+    except BadRequest as e:
+        logger.error(f"Failed to answer callback query: {e}")
 
     movie_id = query.data.split("_")[1]
     movie = next((m for m in movies if m["id"] == movie_id), None)
