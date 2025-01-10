@@ -35,7 +35,7 @@ def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message=s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -96,8 +96,8 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("Buy Now", callback_data=f"buy_{movie['id']}")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
-        if 'cover' in movie:
-            await query.message.reply_photo(photo=movie["cover"], caption=text, parse_mode="Markdown", reply_markup=reply_markup)
+        if 'preview_video' in movie:
+            await query.message.reply_video(video=movie["preview_video"], caption=text, parse_mode="Markdown", reply_markup=reply_markup)
         else:
             await query.message.reply_text(text, parse_mode="Markdown", reply_markup=reply_markup)
 
