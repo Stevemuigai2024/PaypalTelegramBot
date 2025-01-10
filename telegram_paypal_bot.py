@@ -20,6 +20,12 @@ port = int(os.getenv("PORT", 10000))
 def home():
     return 'Hello World!'
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    application.process_update(update)
+    return 'ok', 200
+
 # Configure logging
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -79,8 +85,8 @@ async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "intent": "sale",
             "payer": {"payment_method": "paypal"},
             "redirect_urls": {
-                "return_url": "https://yourserver.com/payment/return",
-                "cancel_url": "https://yourserver.com/payment/cancel"
+                "return_url": "https://your-app.onrender.com/payment/return",
+                "cancel_url": "https://your-app.onrender.com/payment/cancel"
             },
             "transactions": [{
                 "item_list": {
@@ -127,13 +133,7 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
 application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    application.process_update(update)
-    return 'ok', 200
-
 if __name__ == "__main__":
     # Set the webhook
-    bot.set_webhook(f"https://<your-domain>/webhook")
+    bot.set_webhook(f"https://paypaltelegrambot.onrender.com/webhook")
     app.run(host='0.0.0.0', port=port)
