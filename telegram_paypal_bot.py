@@ -35,7 +35,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message=s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -139,40 +139,3 @@ async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for link in payment.links:
                 if link.rel == "approval_url":
                     approval_url = link.href
-                    keyboard = [[InlineKeyboardButton("Pay with PayPal", url=approval_url)]]
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-                    await query.message.reply_text("Click below to complete your purchase:", reply_markup=reply_markup)
-                    return
-        else:
-            logger.error(payment.error)
-            await query.message.reply_text("Payment creation failed. Please try again later.")
-
-# After successful payment, send download link
-async def send_download_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Verify payment using PayPal SDK or webhook listener
-    # Placeholder logic for actual verification
-    movie_id = "1"  # Replace with dynamic extraction from payment metadata
-    movie = next((m for m in movies if m["id"] == movie_id), None)
-
-    if movie:
-        await update.message.reply_text(f"Thank you for your purchase! 🎉\nHere is your download link: {movie['download_link']}")
-
-# Add handlers
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
-application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
-
-async def initialize_bot():
-    await bot.initialize()
-
-async def main():
-    webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
-    await bot.set_webhook(webhook_url)
-    logger.info(f"Webhook set to {webhook_url}")
-
-    await initialize_bot()
-    await application.initialize()
-    app.run(host='0.0.0.0', port=port)
-
-if __name__ == "__main__":
-    asyncio.run(main())
