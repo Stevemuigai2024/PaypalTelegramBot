@@ -10,6 +10,7 @@ import json
 import logging
 import asyncio
 from telegram.request import HTTPXRequest
+from telegram.error import BadRequest
 
 # Load environment variables
 load_dotenv()
@@ -34,7 +35,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message=s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -161,11 +162,15 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
 application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
 
+async def initialize_bot():
+    await bot.initialize()
+
 async def main():
     webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
     await bot.set_webhook(webhook_url)
     logger.info(f"Webhook set to {webhook_url}")
 
+    await initialize_bot()
     await application.initialize()
     app.run(host='0.0.0.0', port=port)
 
