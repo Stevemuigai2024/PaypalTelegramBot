@@ -8,7 +8,7 @@ import json
 import logging
 import asyncio
 from telegram.request import HTTPXRequest
-from telegram.error import BadRequest
+from telegram.error import BadRequest, NetworkError
 
 # Load environment variables
 load_dotenv()
@@ -94,7 +94,14 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         if 'preview_video' in movie:
-            await query.message.reply_video(video=movie["preview_video"], caption=text, parse_mode="Markdown", reply_markup=reply_markup)
+            video_url = movie["preview_video"]
+            if not video_url.startswith("http"):
+                video_url = f"https://your-default-domain.com/{video_url}"
+            try:
+                await query.message.reply_video(video=video_url, caption=text, parse_mode="Markdown", reply_markup=reply_markup)
+            except BadRequest as e:
+                logger.error(f"Failed to send video: {e}")
+                await query.message.reply_text(text, parse_mode="Markdown", reply_markup=reply_markup)
         else:
             await query.message.reply_text(text, parse_mode="Markdown", reply_markup=reply_markup)
 
