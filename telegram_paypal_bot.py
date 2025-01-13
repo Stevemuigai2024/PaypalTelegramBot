@@ -9,7 +9,7 @@ from telegram.request import HTTPXRequest
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Corrected format string
+    format='%(asctime)s - %(name)s - %(levelname=s - %(message)s',  # Corrected format string
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
@@ -68,6 +68,14 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error in movie_details handler: {e}", exc_info=True)  # Log exception info
 
+# Completion callback for handling future results
+def handle_future_result(future):
+    try:
+        result = future.result()
+        logger.info(f"Process update result: {result}")
+    except Exception as e:
+        logger.error(f"Error processing future result: {e}", exc_info=True)
+
 # Flask webhook route
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -77,9 +85,8 @@ def webhook():
         logger.info(f"Request JSON: {update_json}")
         update = Update.de_json(update_json, bot)
         future = asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
-        logger.info("Waiting for the future to complete")
-        result = future.result(timeout=60)  # Extended timeout to 60 seconds
-        logger.info(f"Process update result: {result}")
+        future.add_done_callback(handle_future_result)  # Add completion callback
+        logger.info("Added done callback to future")
     except Exception as e:
         logger.error(f"Error processing update: {e}", exc_info=True)  # Log exception info
     return 'ok', 200
