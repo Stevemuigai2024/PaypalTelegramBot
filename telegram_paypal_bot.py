@@ -5,6 +5,7 @@ from flask import Flask, request as flask_request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from threading import Thread
+from telegram.request import HTTPXRequest
 
 # Enable logging
 logging.basicConfig(
@@ -19,8 +20,15 @@ app = Flask(__name__)
 # Telegram bot setup
 TOKEN = "7964230854:AAHb1cv8J42SHksH9Vaq_DBaKNbhKGzLoMA"
 
-bot = Bot(TOKEN)
-application = Application.builder().token(TOKEN).build()
+request = HTTPXRequest(
+    connection_pool_size=64,  # Adjust the pool size for better handling
+    connect_timeout=60,
+    read_timeout=60,
+    pool_timeout=60
+)
+
+bot = Bot(token=TOKEN, request=request)
+application = Application.builder().token(TOKEN).request(request).build()
 
 # Movie catalog
 movies = {
@@ -67,9 +75,9 @@ application.add_handler(CallbackQueryHandler(movie_details))
 
 # Function to run the bot
 async def start_bot():
+    await bot.initialize()
     await application.initialize()
     await application.start()
-    await bot.initialize()
     logger.info("Bot started.")
 
 # Run Flask app
