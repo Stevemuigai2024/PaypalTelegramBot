@@ -21,10 +21,10 @@ app = Flask(__name__)
 TOKEN = "7964230854:AAHb1cv8J42SHksH9Vaq_DBaKNbhKGzLoMA"
 
 request = HTTPXRequest(
-    connection_pool_size=64,  # Adjust the pool size for better handling
-    connect_timeout=60,
-    read_timeout=60,
-    pool_timeout=60
+    connection_pool_size=64,  # Set a balanced pool size
+    connect_timeout=30,
+    read_timeout=30,
+    pool_timeout=30
 )
 
 bot = Bot(token=TOKEN, request=request)
@@ -64,7 +64,7 @@ def webhook():
     logger.info(f"Request JSON: {flask_request.get_json()}")
     try:
         update = Update.de_json(flask_request.get_json(force=True), bot)
-        asyncio.run(application.process_update(update))
+        asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
     except Exception as e:
         logger.error(f"Error processing update: {e}")
     return 'ok', 200
@@ -85,8 +85,10 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"Starting Flask app on port {port}")
 
+    loop = asyncio.get_event_loop()
+
     # Run bot in a separate thread
-    Thread(target=lambda: asyncio.run(start_bot()), daemon=True).start()
+    Thread(target=lambda: loop.run_until_complete(start_bot()), daemon=True).start()
 
     # Start Flask server
     app.run(host='0.0.0.0', port=port)
