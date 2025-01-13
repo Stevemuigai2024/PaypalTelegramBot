@@ -171,17 +171,20 @@ def run_app():
     app.run(host='0.0.0.0', port=port, use_reloader=False)
 
 async def main():
-    webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
-    await bot.set_webhook(webhook_url)
-    logger.info(f"Webhook set to {webhook_url}")
+    try:
+        webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
+        await bot.set_webhook(webhook_url)
+        logger.info(f"Webhook set to {webhook_url}")
 
-    await initialize_bot()
-    await application.initialize()
+        await initialize_bot()
+        await application.initialize()
 
-    run_app()
+        run_app()
+    except Exception as e:
+        logger.error(f"Unhandled exception in main: {e}")
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except Exception as e:
-        logger.error(f"Unhandled exception: {e}")
+        logger.error(f"Unhandled exception in __main__: {e}")
