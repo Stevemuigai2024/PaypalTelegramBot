@@ -69,6 +69,7 @@ application.add_handler(CallbackQueryHandler(movie_details))
 async def start_bot():
     await application.initialize()
     await application.start()
+    await bot.initialize()
     logger.info("Bot started.")
 
 # Run Flask app
