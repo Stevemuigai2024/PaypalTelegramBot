@@ -38,15 +38,18 @@ movies = {
 
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info("Start command received")
     keyboard = [
         [InlineKeyboardButton(movie["title"], callback_data=movie_id)]
         for movie_id, movie in movies.items()
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
+    logger.info("Sent start message")
 
 # Movie details handler
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info("Movie details received")
     query = update.callback_query
     await query.answer()
     movie_id = query.data
@@ -54,8 +57,10 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if movie:
         text = f"*{movie['title']}*\n\n{movie['description']}\n\nPrice: ${movie['price']}"
         await query.edit_message_text(text=text, parse_mode='Markdown')
+        logger.info(f"Sent details for movie: {movie_id}")
     else:
         await query.edit_message_text(text="Movie not found.")
+        logger.info(f"Movie not found: {movie_id}")
 
 # Flask webhook route
 @app.route('/webhook', methods=['POST'])
