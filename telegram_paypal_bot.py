@@ -32,7 +32,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname=s - %(message=s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -170,16 +170,18 @@ def run_app():
     logger.info(f"Starting Flask app on port {port}")
     app.run(host='0.0.0.0', port=port, use_reloader=False)
 
-def main():
+async def main():
     webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
-    asyncio.run(bot.set_webhook(webhook_url))
+    await bot.set_webhook(webhook_url)
     logger.info(f"Webhook set to {webhook_url}")
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(initialize_bot())
-    loop.run_until_complete(application.initialize())
+    await initialize_bot()
+    await application.initialize()
+
     run_app()
 
 if __name__ == "__main__":
-    main()
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        logger.error(f"Unhandled exception: {e}")
