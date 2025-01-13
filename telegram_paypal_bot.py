@@ -4,7 +4,6 @@ import os
 from flask import Flask, request as flask_request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
-import uvicorn
 
 # Enable logging
 logging.basicConfig(
@@ -68,7 +67,7 @@ application.add_handler(CallbackQueryHandler(movie_details))
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"Starting Flask app on port {port}")
-    uvicorn.run(app, host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)
 
 # Start the bot asynchronously
 async def main():
