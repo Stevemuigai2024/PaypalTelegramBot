@@ -32,7 +32,7 @@ async def webhook():
     return 'ok', 200
 
 # Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message=s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load bot token from environment
@@ -192,6 +192,8 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(main())
     except Exception as e:
         logger.error(f"Unhandled exception in __main__: {e}")
