@@ -68,13 +68,11 @@ application.add_handler(CallbackQueryHandler(movie_details))
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"Starting Flask app on port {port}")
+
+    async def start_bot():
+        await application.initialize()
+        await application.start()
+        logger.info("Bot started.")
+
+    asyncio.run(start_bot())
     app.run(host='0.0.0.0', port=port)
-
-# Start the bot asynchronously
-async def main():
-    await application.initialize()
-    await application.start()
-    await application.updater.start_polling()
-    await application.idle()
-
-asyncio.run(main())
