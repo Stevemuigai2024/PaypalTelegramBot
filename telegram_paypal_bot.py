@@ -9,7 +9,7 @@ from telegram.request import HTTPXRequest
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Corrected format string
+    format='%(asctime)s - %(name)s - %(levelname=s - %(message)s',  # Corrected format string
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def webhook():
         logger.info(f"Request JSON: {update_json}")
         update = Update.de_json(update_json, bot)
         future = asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
-        result = future.result(timeout=10)  # Wait for the coroutine to finish
+        result = future.result(timeout=30)  # Extended timeout to 30 seconds
         logger.info(f"Process update result: {result}")
     except Exception as e:
         logger.error(f"Error processing update: {e}", exc_info=True)  # Log exception info
