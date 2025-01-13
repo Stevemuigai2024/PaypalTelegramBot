@@ -9,7 +9,7 @@ from telegram.request import HTTPXRequest
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname=s - %(message)s',  # Corrected format string
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Corrected format string
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
         logger.info("Sent start message")
     except Exception as e:
-        logger.error(f"Error in start handler: {e}")
+        logger.error(f"Error in start handler: {e}", exc_info=True)  # Log exception info
 
 # Movie details handler
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -66,7 +66,7 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(text="Movie not found.")
             logger.info(f"Movie not found: {movie_id}")
     except Exception as e:
-        logger.error(f"Error in movie_details handler: {e}")
+        logger.error(f"Error in movie_details handler: {e}", exc_info=True)  # Log exception info
 
 # Flask webhook route
 @app.route('/webhook', methods=['POST'])
