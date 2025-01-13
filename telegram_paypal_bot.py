@@ -8,7 +8,7 @@ import json
 import logging
 import asyncio
 from telegram.request import HTTPXRequest
-from telegram.error import BadRequest, NetworkError
+from telegram.error import BadRequest, NetworkError, TimedOut
 
 # Load environment variables
 load_dotenv()
@@ -42,10 +42,10 @@ if not BOT_TOKEN:
 
 # Increase connection pool size and timeout using HTTPXRequest
 request = HTTPXRequest(
-    connection_pool_size=64,  # Increase the pool size further
-    connect_timeout=30,
-    read_timeout=30,
-    pool_timeout=30
+    connection_pool_size=128,  # Increase the pool size further
+    connect_timeout=60,
+    read_timeout=60,
+    pool_timeout=60
 )
 
 # Create bot and application
