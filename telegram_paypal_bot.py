@@ -1,6 +1,5 @@
 import logging
 import asyncio
-import os
 from flask import Flask, request as flask_request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
@@ -16,7 +15,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # Telegram bot setup
-TOKEN = os.getenv("TELEGRAM_TOKEN")
+TOKEN = "7964230854:AAHb1cv8J42SHksH9Vaq_DBaKNbhKGzLoMA"
+
 bot = Bot(TOKEN)
 application = Application.builder().token(TOKEN).build()
 
