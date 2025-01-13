@@ -76,7 +76,9 @@ def webhook():
         update_json = flask_request.get_json(force=True)
         logger.info(f"Request JSON: {update_json}")
         update = Update.de_json(update_json, bot)
-        asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
+        future = asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
+        result = future.result(timeout=10)  # Wait for the coroutine to finish
+        logger.info(f"Process update result: {result}")
     except Exception as e:
         logger.error(f"Error processing update: {e}")
     return 'ok', 200
