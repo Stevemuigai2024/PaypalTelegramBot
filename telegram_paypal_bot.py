@@ -4,6 +4,7 @@ import os
 from flask import Flask, request as flask_request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from threading import Thread
 
 # Enable logging
 logging.basicConfig(
@@ -64,15 +65,19 @@ def webhook():
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details))
 
+# Function to run the bot
+async def start_bot():
+    await application.initialize()
+    await application.start()
+    logger.info("Bot started.")
+
 # Run Flask app
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"Starting Flask app on port {port}")
 
-    async def start_bot():
-        await application.initialize()
-        await application.start()
-        logger.info("Bot started.")
+    # Run bot in a separate thread
+    Thread(target=lambda: asyncio.run(start_bot()), daemon=True).start()
 
-    asyncio.run(start_bot())
+    # Start Flask server
     app.run(host='0.0.0.0', port=port)
