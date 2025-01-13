@@ -9,7 +9,7 @@ from telegram.request import HTTPXRequest
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name=s - %(levelname=s - %(message)s',  # Corrected format string
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Corrected format string
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
