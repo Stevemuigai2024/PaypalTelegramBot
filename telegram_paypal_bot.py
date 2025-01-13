@@ -1,198 +1,80 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-from flask import Flask, request as flask_request
-from dotenv import load_dotenv
-import os
-import paypalrestsdk
-import json
 import logging
 import asyncio
-from telegram.request import HTTPXRequest
-from telegram.error import BadRequest, NetworkError, TimedOut
+import os
+from flask import Flask, request as flask_request
+from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+import uvicorn
 
-# Load environment variables
-load_dotenv()
+# Enable logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
+# Flask app setup
 app = Flask(__name__)
-port = int(os.getenv("PORT", 10000))
 
-@app.route('/')
-def home():
-    return 'Hello World!'
+# Telegram bot setup
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+bot = Bot(TOKEN)
+application = Application.builder().token(TOKEN).build()
 
+# Movie catalog
+movies = {
+    "movie_1": {"title": "Inception", "price": 9.99, "description": "A thief who steals corporate secrets through the use of dream-sharing technology."},
+    "movie_2": {"title": "The Dark Knight", "price": 8.99, "description": "Batman must accept one of the greatest psychological and physical tests."}
+}
+
+# Start command handler
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton(movie["title"], callback_data=movie_id)]
+        for movie_id, movie in movies.items()
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
+
+# Movie details handler
+async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    movie_id = query.data
+    movie = movies.get(movie_id, {})
+    if movie:
+        text = f"*{movie['title']}*\n\n{movie['description']}\n\nPrice: ${movie['price']}"
+        await query.edit_message_text(text=text, parse_mode='Markdown')
+    else:
+        await query.edit_message_text(text="Movie not found.")
+
+# Flask webhook route
 @app.route('/webhook', methods=['POST'])
-async def webhook():
+def webhook():
     logger.info("Webhook received")
     logger.info(f"Request JSON: {flask_request.get_json()}")
     try:
         update = Update.de_json(flask_request.get_json(force=True), bot)
-        await application.process_update(update)
+        asyncio.run(application.process_update(update))
     except Exception as e:
         logger.error(f"Error processing update: {e}")
     return 'ok', 200
 
-# Configure logging
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Load bot token from environment
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-if not BOT_TOKEN:
-    raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
-
-# Increase connection pool size and timeout using HTTPXRequest
-request = HTTPXRequest(
-    connection_pool_size=128,  # Increase the pool size further
-    connect_timeout=60,
-    read_timeout=60,
-    pool_timeout=60
-)
-
-# Create bot and application
-bot = Bot(token=BOT_TOKEN, request=request)
-application = Application.builder().token(BOT_TOKEN).request(request).build()
-
-# Configure PayPal
-paypalrestsdk.configure({
-    "mode": "sandbox",  # Change to "live" for production
-    "client_id": os.getenv("PAYPAL_CLIENT_ID"),  # Load from environment
-    "client_secret": os.getenv("PAYPAL_CLIENT_SECRET")  # Load from environment
-})
-
-# Load movies database
-with open('movies.json', 'r') as file:
-    movies = json.load(file)
-
-# Error handler function
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    logger.error(msg="Exception while handling an update:", exc_info=context.error)
-
-# Add error handler
-application.add_error_handler(error_handler)
-
-# Start command
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    welcome_text = "Welcome to MovieBot! 🎬\nBrowse and buy movies easily."
-    keyboard = [[InlineKeyboardButton(movie["title"], callback_data=f"movie_{movie['id']}") for movie in movies]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(welcome_text, reply_markup=reply_markup)
-
-# Handle movie selection
-async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    try:
-        await query.answer()
-    except BadRequest as e:
-        logger.error(f"Failed to answer callback query: {e}")
-
-    movie_id = query.data.split("_")[1]
-    movie = next((m for m in movies if m["id"] == movie_id), None)
-
-    if movie:
-        text = f"*{movie['title']}*\n{movie['description']}\nPrice: ${movie['price']}"
-        keyboard = [[InlineKeyboardButton("Buy Now", callback_data=f"buy_{movie['id']}")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        if 'preview_video' in movie:
-            video_url = movie["preview_video"]
-            if not video_url.startswith("http"):
-                video_url = f"https://your-default-domain.com/{video_url}"
-            try:
-                await query.message.reply_video(video=video_url, caption=text, parse_mode="Markdown", reply_markup=reply_markup)
-            except BadRequest as e:
-                logger.error(f"Failed to send video: {e}")
-                await query.message.reply_text(text, parse_mode="Markdown", reply_markup=reply_markup)
-        else:
-            await query.message.reply_text(text, parse_mode="Markdown", reply_markup=reply_markup)
-
-# Handle purchase
-async def handle_purchase(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    try:
-        await query.answer()
-    except BadRequest as e:
-        logger.error(f"Failed to answer callback query: {e}")
-
-    movie_id = query.data.split("_")[1]
-    movie = next((m for m in movies if m["id"] == movie_id), None)
-
-    if movie:
-        # Create PayPal payment
-        payment = paypalrestsdk.Payment({
-            "intent": "sale",
-            "payer": {"payment_method": "paypal"},
-            "redirect_urls": {
-                "return_url": "https://paypaltelegrambot.onrender.com/payment/return",
-                "cancel_url": "https://paypaltelegrambot.onrender.com/payment/cancel"
-            },
-            "transactions": [{
-                "item_list": {
-                    "items": [{
-                        "name": movie["title"],
-                        "sku": movie["id"],
-                        "price": str(movie["price"]),
-                        "currency": "USD",
-                        "quantity": 1
-                    }]
-                },
-                "amount": {
-                    "total": str(movie["price"]),
-                    "currency": "USD"
-                },
-                "description": movie["description"]
-            }]
-        })
-
-        if payment.create():
-            for link in payment.links:
-                if link.rel == "approval_url":
-                    approval_url = link.href
-                    keyboard = [[InlineKeyboardButton("Pay with PayPal", url=approval_url)]]
-                    reply_markup = InlineKeyboardMarkup(keyboard)
-                    await query.message.reply_text("Click below to complete your purchase:", reply_markup=reply_markup)
-                    return
-        else:
-            logger.error(payment.error)
-            await query.message.reply_text("Payment creation failed. Please try again later.")
-
-# After successful payment, send download link
-async def send_download_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Verify payment using PayPal SDK or webhook listener
-    # Placeholder logic for actual verification
-    movie_id = "1"  # Replace with dynamic extraction from payment metadata
-    movie = next((m for m in movies if m["id"] == movie_id), None)
-
-    if movie:
-        await update.message.reply_text(f"Thank you for your purchase! 🎉\nHere is your download link: {movie['download_link']}")
-
-# Add handlers
+# Set up handlers
 application.add_handler(CommandHandler("start", start))
-application.add_handler(CallbackQueryHandler(movie_details, pattern="^movie_"))
-application.add_handler(CallbackQueryHandler(handle_purchase, pattern="^buy_"))
+application.add_handler(CallbackQueryHandler(movie_details))
 
-async def initialize_bot():
-    await bot.initialize()
-
-def run_app():
+# Run Flask app
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
     logger.info(f"Starting Flask app on port {port}")
-    app.run(host='0.0.0.0', port=port, use_reloader=False)
+    uvicorn.run(app, host='0.0.0.0', port=port)
 
+# Start the bot asynchronously
 async def main():
-    try:
-        webhook_url = f"https://paypaltelegrambot.onrender.com/webhook"
-        await bot.set_webhook(webhook_url)
-        logger.info(f"Webhook set to {webhook_url}")
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    await application.idle()
 
-        await initialize_bot()
-        await application.initialize()
-
-        run_app()
-    except Exception as e:
-        logger.error(f"Unhandled exception in main: {e}")
-
-if __name__ == "__main__":
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
-    except Exception as e:
-        logger.error(f"Unhandled exception in __main__: {e}")
+asyncio.run(main())
