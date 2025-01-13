@@ -80,7 +80,7 @@ def webhook():
         result = future.result(timeout=10)  # Wait for the coroutine to finish
         logger.info(f"Process update result: {result}")
     except Exception as e:
-        logger.error(f"Error processing update: {e}")
+        logger.error(f"Error processing update: {e}", exc_info=True)  # Log exception info
     return 'ok', 200
 
 # Set up handlers
@@ -95,7 +95,7 @@ async def start_bot():
         await application.start()
         logger.info("Bot started.")
     except Exception as e:
-        logger.error(f"Error starting bot: {e}")
+        logger.error(f"Error starting bot: {e}", exc_info=True)  # Log exception info
 
 # Run Flask app
 if __name__ == '__main__':
@@ -111,4 +111,4 @@ if __name__ == '__main__':
         # Start Flask server
         app.run(host='0.0.0.0', port=port)
     except Exception as e:
-        logger.error(f"Error in main: {e}")
+        logger.error(f"Error in main: {e}", exc_info=True)  # Log exception info
