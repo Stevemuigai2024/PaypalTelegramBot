@@ -38,37 +38,44 @@ movies = {
 
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info("Start command received")
-    keyboard = [
-        [InlineKeyboardButton(movie["title"], callback_data=movie_id)]
-        for movie_id, movie in movies.items()
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
-    logger.info("Sent start message")
+    try:
+        logger.info("Start command received")
+        keyboard = [
+            [InlineKeyboardButton(movie["title"], callback_data=movie_id)]
+            for movie_id, movie in movies.items()
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
+        logger.info("Sent start message")
+    except Exception as e:
+        logger.error(f"Error in start handler: {e}")
 
 # Movie details handler
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info("Movie details received")
-    query = update.callback_query
-    await query.answer()
-    movie_id = query.data
-    movie = movies.get(movie_id, {})
-    if movie:
-        text = f"*{movie['title']}*\n\n{movie['description']}\n\nPrice: ${movie['price']}"
-        await query.edit_message_text(text=text, parse_mode='Markdown')
-        logger.info(f"Sent details for movie: {movie_id}")
-    else:
-        await query.edit_message_text(text="Movie not found.")
-        logger.info(f"Movie not found: {movie_id}")
+    try:
+        logger.info("Movie details received")
+        query = update.callback_query
+        await query.answer()
+        movie_id = query.data
+        movie = movies.get(movie_id, {})
+        if movie:
+            text = f"*{movie['title']}*\n\n{movie['description']}\n\nPrice: ${movie['price']}"
+            await query.edit_message_text(text=text, parse_mode='Markdown')
+            logger.info(f"Sent details for movie: {movie_id}")
+        else:
+            await query.edit_message_text(text="Movie not found.")
+            logger.info(f"Movie not found: {movie_id}")
+    except Exception as e:
+        logger.error(f"Error in movie_details handler: {e}")
 
 # Flask webhook route
 @app.route('/webhook', methods=['POST'])
 def webhook():
     logger.info("Webhook received")
-    logger.info(f"Request JSON: {flask_request.get_json()}")
     try:
-        update = Update.de_json(flask_request.get_json(force=True), bot)
+        update_json = flask_request.get_json(force=True)
+        logger.info(f"Request JSON: {update_json}")
+        update = Update.de_json(update_json, bot)
         asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
     except Exception as e:
         logger.error(f"Error processing update: {e}")
@@ -80,20 +87,26 @@ application.add_handler(CallbackQueryHandler(movie_details))
 
 # Function to run the bot
 async def start_bot():
-    await bot.initialize()
-    await application.initialize()
-    await application.start()
-    logger.info("Bot started.")
+    try:
+        await bot.initialize()
+        await application.initialize()
+        await application.start()
+        logger.info("Bot started.")
+    except Exception as e:
+        logger.error(f"Error starting bot: {e}")
 
 # Run Flask app
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    logger.info(f"Starting Flask app on port {port}")
+    try:
+        port = int(os.environ.get('PORT', 5000))
+        logger.info(f"Starting Flask app on port {port}")
 
-    loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop()
 
-    # Run bot in a separate thread
-    Thread(target=lambda: loop.run_until_complete(start_bot()), daemon=True).start()
+        # Run bot in a separate thread
+        Thread(target=lambda: loop.run_until_complete(start_bot()), daemon=True).start()
 
-    # Start Flask server
-    app.run(host='0.0.0.0', port=port)
+        # Start Flask server
+        app.run(host='0.0.0.0', port=port)
+    except Exception as e:
+        logger.error(f"Error in main: {e}")
