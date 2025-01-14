@@ -13,7 +13,7 @@ load_dotenv()
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # Corrected format string
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ if not BOT_TOKEN:
     raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
 
 request = HTTPXRequest(
-    connection_pool_size=64,  # Set a balanced pool size
+    connection_pool_size=64,
     connect_timeout=30,
     read_timeout=30,
     pool_timeout=30
@@ -90,14 +90,19 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Flask webhook route
 @app.route('/webhook', methods=['POST'])
-async def webhook():
+def webhook():
     logger.info("Webhook received")
     try:
         update_json = flask_request.get_json(force=True)
         logger.info(f"Request JSON: {update_json}")
         update = Update.de_json(update_json, bot)
-        await application.process_update(update)
-        logger.info("Update processed")
+        
+        # Run the update processing in the existing event loop
+        async def process_update():
+            await application.process_update(update)
+            logger.info("Update processed")
+
+        asyncio.run(process_update())
     except Exception as e:
         logger.error(f"Error processing update: {e}", exc_info=True)
     return 'ok', 200
