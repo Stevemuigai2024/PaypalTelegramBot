@@ -92,19 +92,25 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @app.route('/webhook', methods=['POST'])
 def webhook():
     logger.info("Webhook received")
-    try:
-        update_json = flask_request.get_json(force=True)
-        logger.info(f"Request JSON: {update_json}")
-        update = Update.de_json(update_json, bot)
-        
-        # Run the update processing in the existing event loop
-        async def process_update():
-            await application.process_update(update)
-            logger.info("Update processed")
+    update_json = flask_request.get_json(force=True)
+    logger.info(f"Request JSON: {update_json}")
+    update = Update.de_json(update_json, bot)
 
-        asyncio.run(process_update())
+    # Create a new event loop for the webhook processing
+    new_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(new_loop)
+
+    async def process_update():
+        await application.process_update(update)
+        logger.info("Update processed")
+
+    try:
+        new_loop.run_until_complete(process_update())
     except Exception as e:
         logger.error(f"Error processing update: {e}", exc_info=True)
+    finally:
+        new_loop.close()
+
     return 'ok', 200
 
 # Set up handlers
