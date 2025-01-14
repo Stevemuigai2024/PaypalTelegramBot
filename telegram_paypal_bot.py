@@ -96,20 +96,20 @@ def webhook():
     logger.info(f"Request JSON: {update_json}")
     update = Update.de_json(update_json, bot)
 
-    # Create a new event loop for the webhook processing
-    new_loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(new_loop)
-
     async def process_update():
         await application.process_update(update)
         logger.info("Update processed")
 
+    # Create a new event loop for each request
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
     try:
-        new_loop.run_until_complete(process_update())
+        loop.run_until_complete(process_update())
     except Exception as e:
         logger.error(f"Error processing update: {e}", exc_info=True)
     finally:
-        new_loop.close()
+        loop.close()
 
     return 'ok', 200
 
