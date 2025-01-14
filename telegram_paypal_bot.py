@@ -26,6 +26,7 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
 
+# Configure HTTPXRequest with connection pooling
 request = HTTPXRequest(
     connection_pool_size=64,
     connect_timeout=30,
