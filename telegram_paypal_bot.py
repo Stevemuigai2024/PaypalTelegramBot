@@ -6,6 +6,10 @@ from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from threading import Thread
 from telegram.request import HTTPXRequest
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Enable logging
 logging.basicConfig(
@@ -18,7 +22,9 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # Telegram bot setup
-TOKEN = "7964230854:AAHb1cv8J42SHksH9Vaq_DBaKNbhKGzLoMA"
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise ValueError("Bot token is not set. Please check your .env file or environment variables.")
 
 request = HTTPXRequest(
     connection_pool_size=64,  # Set a balanced pool size
@@ -27,28 +33,42 @@ request = HTTPXRequest(
     pool_timeout=30
 )
 
-bot = Bot(token=TOKEN, request=request)
-application = Application.builder().token(TOKEN).request(request).build()
+bot = Bot(token=BOT_TOKEN, request=request)
+application = Application.builder().token(BOT_TOKEN).request(request).build()
 
-# Movie catalog
-movies = {
-    "movie_1": {"title": "Inception", "price": 9.99, "description": "A thief who steals corporate secrets through the use of dream-sharing technology."},
-    "movie_2": {"title": "The Dark Knight", "price": 8.99, "description": "Batman must accept one of the greatest psychological and physical tests."}
-}
+# Load movies database
+movies = [
+    {
+        "id": "1",
+        "title": "Inception",
+        "description": "A thief with the ability to enter people's dreams and steal secrets from their subconscious.",
+        "price": 10.99,
+        "preview_video": "https://example.com/preview/inception",
+        "download_link": "https://example.com/downloads/inception"
+    },
+    {
+        "id": "2",
+        "title": "The Dark Knight",
+        "description": "Batman raises the stakes in his war on crime with the help of Lieutenant Jim Gordon and District Attorney Harvey Dent.",
+        "price": 8.99,
+        "preview_video": "https://example.com/previews/dark-knight.mp4",
+        "download_link": "https://example.com/downloads/dark-knight"
+    }
+]
 
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         logger.info("Start command received")
         keyboard = [
-            [InlineKeyboardButton(movie["title"], callback_data=movie_id)]
-            for movie_id, movie in movies.items()
+            [InlineKeyboardButton(movie["title"], callback_data=movie["id"])]
+            for movie in movies
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
         logger.info("Sent start message")
     except Exception as e:
-        logger.error(f"Error in start handler: {e}", exc_info=True)  # Log exception info
+        logger.error(f"Error in start handler: {e}", exc_info=True)
 
 # Movie details handler
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -57,7 +77,7 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
         await query.answer()
         movie_id = query.data
-        movie = movies.get(movie_id, {})
+        movie = next((m for m in movies if m["id"] == movie_id), None)
         if movie:
             text = f"*{movie['title']}*\n\n{movie['description']}\n\nPrice: ${movie['price']}"
             await query.edit_message_text(text=text, parse_mode='Markdown')
@@ -66,29 +86,20 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(text="Movie not found.")
             logger.info(f"Movie not found: {movie_id}")
     except Exception as e:
-        logger.error(f"Error in movie_details handler: {e}", exc_info=True)  # Log exception info
-
-# Completion callback for handling future results
-def handle_future_result(future):
-    try:
-        result = future.result()
-        logger.info(f"Process update result: {result}")
-    except Exception as e:
-        logger.error(f"Error processing future result: {e}", exc_info=True)
+        logger.error(f"Error in movie_details handler: {e}", exc_info=True)
 
 # Flask webhook route
 @app.route('/webhook', methods=['POST'])
-def webhook():
+async def webhook():
     logger.info("Webhook received")
     try:
         update_json = flask_request.get_json(force=True)
         logger.info(f"Request JSON: {update_json}")
         update = Update.de_json(update_json, bot)
-        future = asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
-        future.add_done_callback(handle_future_result)  # Add completion callback
-        logger.info("Added done callback to future")
+        await application.process_update(update)
+        logger.info("Update processed")
     except Exception as e:
-        logger.error(f"Error processing update: {e}", exc_info=True)  # Log exception info
+        logger.error(f"Error processing update: {e}", exc_info=True)
     return 'ok', 200
 
 # Set up handlers
@@ -107,12 +118,12 @@ async def start_bot():
         logger.info("Application started")
         logger.info("Bot started.")
     except Exception as e:
-        logger.error(f"Error starting bot: {e}", exc_info=True)  # Log exception info
+        logger.error(f"Error starting bot: {e}", exc_info=True)
 
 # Run Flask app
 if __name__ == '__main__':
     try:
-        port = int(os.environ.get('PORT', 5000))
+        port = int(os.getenv("PORT", 10000))
         logger.info(f"Starting Flask app on port {port}")
 
         loop = asyncio.get_event_loop()
@@ -123,4 +134,4 @@ if __name__ == '__main__':
         # Start Flask server
         app.run(host='0.0.0.0', port=port)
     except Exception as e:
-        logger.error(f"Error in main: {e}", exc_info=True)  # Log exception info
+        logger.error(f"Error in main: {e}", exc_info=True)
