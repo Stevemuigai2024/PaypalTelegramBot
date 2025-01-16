@@ -4,7 +4,6 @@ import os
 from flask import Flask, request
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
-import httpx
 
 # Configure logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -19,12 +18,9 @@ if not TELEGRAM_TOKEN:
 # Flask app
 app = Flask(__name__)
 
-# HTTPX Async Client with HTTP2 support
-http_client = httpx.AsyncClient(http2=True)
-
 # Initialize Bot and Application
 bot = Bot(token=TELEGRAM_TOKEN)
-application = Application.builder().token(TELEGRAM_TOKEN).client(http_client).build()
+application = Application.builder().token(TELEGRAM_TOKEN).build()
 
 # Error Handler
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
