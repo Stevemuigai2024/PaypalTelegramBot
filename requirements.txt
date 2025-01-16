@@ -1,6 +1,7 @@
 python-telegram-bot==20.3
 paypalrestsdk==1.13.3
 python-dotenv
+httpx[http2]
 Flask[async]
 flask
 logging
