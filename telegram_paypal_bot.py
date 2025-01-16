@@ -1,11 +1,10 @@
 import logging
 import asyncio
 import os
-from flask import Flask, request
+from flask import Flask, request as flask_request
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from telegram.request import HTTPXRequest
-
 
 # Configure logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -62,7 +61,7 @@ async def initialize():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
+    update = Update.de_json(flask_request.get_json(force=True), bot)
     loop = asyncio.get_event_loop()
     asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
     return 'OK'
