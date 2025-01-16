@@ -38,7 +38,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("Buy Movie", callback_data='buy_movie')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     if update.message:
-        await update.message.reply_text('Welcome! Click below to buy a movie.', reply_markup=reply_markup)
+        await update.message.reply_text('Welcome! Click below to buy a movie.', reply_markup=reply_markup) 
     elif update.callback_query:
         await update.callback_query.message.reply_text('Welcome! Click below to buy a movie.', reply_markup=reply_markup)
 
@@ -67,7 +67,7 @@ def webhook():
     update = Update.de_json(flask_request.get_json(force=True), bot)
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    asyncio.run(application.process_update(update))
+    loop.run_until_complete(application.process_update(update))
     return 'OK'
 
 if __name__ == '__main__':
