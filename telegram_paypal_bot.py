@@ -37,7 +37,10 @@ application.add_error_handler(error_handler)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("Buy Movie", callback_data='buy_movie')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Welcome! Click below to buy a movie.', reply_markup=reply_markup)
+    if update.message:
+        await update.message.reply_text('Welcome! Click below to buy a movie.', reply_markup=reply_markup)
+    elif update.callback_query:
+        await update.callback_query.message.reply_text('Welcome! Click below to buy a movie.', reply_markup=reply_markup)
 
 # Buy Movie callback handler
 async def buy_movie(update: Update, context: ContextTypes.DEFAULT_TYPE):
