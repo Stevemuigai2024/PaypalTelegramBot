@@ -65,8 +65,9 @@ async def initialize():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = Update.de_json(flask_request.get_json(force=True), bot)
-    loop = asyncio.get_event_loop()
-    asyncio.run_coroutine_threadsafe(application.process_update(update), loop)
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    asyncio.run(application.process_update(update))
     return 'OK'
 
 if __name__ == '__main__':
