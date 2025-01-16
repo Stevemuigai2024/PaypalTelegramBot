@@ -18,8 +18,10 @@ if not TELEGRAM_TOKEN:
 # Flask app
 app = Flask(__name__)
 
-# Initialize Bot and Application
+# Initialize Bot
 bot = Bot(token=TELEGRAM_TOKEN)
+
+# Application initialization
 application = Application.builder().token(TELEGRAM_TOKEN).build()
 
 # Error Handler
@@ -52,7 +54,7 @@ application.add_handler(CallbackQueryHandler(buy_movie, pattern='^buy_movie$'))
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = Update.de_json(request.get_json(force=True), bot)
-    asyncio.run(application.process_update(update))
+    asyncio.create_task(application.process_update(update))
     return 'OK'
 
 async def run_bot():
