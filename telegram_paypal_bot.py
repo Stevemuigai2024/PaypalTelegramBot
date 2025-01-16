@@ -74,7 +74,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for movie in movies
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
+        
+        if update.message:
+            await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
+        elif update.callback_query:
+            await update.callback_query.message.edit_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
+        
         logger.info("Sent start message")
     except Exception as e:
         logger.error(f"Error in start handler: {e}", exc_info=True)
@@ -155,7 +160,7 @@ async def buy_movie(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error in buy_movie handler: {e}", exc_info=True)
 
-# Restart command handler
+# Restart button handler
 async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await start(update, context)
 
@@ -202,7 +207,7 @@ def webhook():
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details, pattern='^\\d+$'))
 application.add_handler(CallbackQueryHandler(buy_movie, pattern='^buy_\\d+$'))
-application.add_handler(CallbackQueryHandler(restart, pattern='start_over'))
+application.add_handler(CallbackQueryHandler(restart, pattern='^start_over$'))
 
 # Function to run the bot
 async def start_bot():
