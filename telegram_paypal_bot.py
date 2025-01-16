@@ -62,7 +62,7 @@ async def run_bot():
     logger.info("Bot and application have started successfully.")
 
 if __name__ == '__main__':
-    # Ensure the requirements are installed, e.g., `pip install -r requirements.txt`
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     loop.run_until_complete(run_bot())
     app.run(port=5000)
