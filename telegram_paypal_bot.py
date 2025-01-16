@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import os
 from flask import Flask, request
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
@@ -9,8 +10,11 @@ import httpx
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Telegram Bot Token
-TELEGRAM_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+# Telegram Bot Token from environment variable
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+if not TELEGRAM_TOKEN:
+    logger.error("Telegram bot token not found. Please set the TELEGRAM_BOT_TOKEN environment variable.")
+    exit(1)
 
 # Flask app
 app = Flask(__name__)
