@@ -70,16 +70,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         logger.info("Start command received")
         keyboard = [
-            [InlineKeyboardButton(movie["title"], callback_data=movie["id"])]
-            for movie in movies
+            [InlineKeyboardButton("Inception", callback_data="1")],
+            [InlineKeyboardButton("The Dark Knight", callback_data="2")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
         if update.message:
             await update.message.reply_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
         elif update.callback_query:
             await update.callback_query.message.edit_text('Welcome to MovieBot! 🎬\nBrowse and buy movies easily.', reply_markup=reply_markup)
-        
         logger.info("Sent start message")
     except Exception as e:
         logger.error(f"Error in start handler: {e}", exc_info=True)
@@ -160,7 +158,7 @@ async def buy_movie(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error in buy_movie handler: {e}", exc_info=True)
 
-# Restart button handler
+# Restart command handler
 async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await start(update, context)
 
@@ -170,7 +168,7 @@ def execute_payment():
     payment_id = flask_request.args.get('paymentId')
     payer_id = flask_request.args.get('PayerID')
     movie_id = flask_request.args.get('movie_id')
-
+    
     payment = paypalrestsdk.Payment.find(payment_id)
     if payment.execute({"payer_id": payer_id}):
         movie = next((m for m in movies if m["id"] == movie_id), None)
@@ -187,19 +185,13 @@ def webhook():
     update = Update.de_json(update_json, bot)
 
     async def process_update():
-        await application.process_update(update)
-        logger.info("Update processed")
+        try:
+            await application.process_update(update)
+            logger.info("Update processed")
+        except Exception as e:
+            logger.error(f"Error processing update: {e}", exc_info=True)
 
-    # Create a new event loop for each request
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    try:
-        loop.run_until_complete(process_update())
-    except Exception as e:
-        logger.error(f"Error processing update: {e}", exc_info=True)
-    finally:
-        loop.close()
+    asyncio.run(process_update())
 
     return 'ok', 200
 
@@ -207,7 +199,7 @@ def webhook():
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details, pattern='^\\d+$'))
 application.add_handler(CallbackQueryHandler(buy_movie, pattern='^buy_\\d+$'))
-application.add_handler(CallbackQueryHandler(restart, pattern='^start_over$'))
+application.add_handler(CallbackQueryHandler(restart, pattern='start_over'))
 
 # Function to run the bot
 async def start_bot():
