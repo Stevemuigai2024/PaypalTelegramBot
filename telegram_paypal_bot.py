@@ -5,16 +5,20 @@ from flask import Flask, request as flask_request
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from telegram.request import HTTPXRequest
+import paypalrestsdk
 
 # Configure logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Telegram Bot Token from environment variable
+# Telegram Bot Token and PayPal settings from environment variable
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 if not TELEGRAM_TOKEN:
     logger.error("Telegram bot token not found. Please set the TELEGRAM_BOT_TOKEN environment variable.")
     exit(1)
+
+PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 
 # Flask app
 app = Flask(__name__)
@@ -26,6 +30,28 @@ request = HTTPXRequest()
 bot = Bot(token=TELEGRAM_TOKEN, request=request)
 application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
 
+# PayPal configuration
+paypalrestsdk.configure({
+    "mode": "sandbox",  # Change to "live" for production
+    "client_id": PAYPAL_CLIENT_ID,
+    "client_secret": PAYPAL_CLIENT_SECRET
+})
+
+wwe_shows = {
+    "RAW": {
+        "description": "Watch the latest episodes of WWE RAW!",
+        "cover_photo": "link_to_raw_cover_photo",
+        "price": 0.20,
+        "download_link": "link_to_raw_download"
+    },
+    "SMACKDOWN": {
+        "description": "Enjoy the thrilling episodes of WWE SMACKDOWN!",
+        "cover_photo": "link_to_smackdown_cover_photo",
+        "price": 0.20,
+        "download_link": "link_to_smackdown_download"
+    }
+}
+
 # Error Handler
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.error(msg=f'Update {update} caused error {context.error}', exc_info=True)
@@ -35,25 +61,76 @@ application.add_error_handler(error_handler)
 
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[InlineKeyboardButton("Buy Movie", callback_data='buy_movie')]]
+    keyboard = [
+        [InlineKeyboardButton("WWE RAW", callback_data='show_RAW')],
+        [InlineKeyboardButton("WWE SMACKDOWN", callback_data='show_SMACKDOWN')]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    message = "Welcome to our WWE official telegram bot! 🏆 Watch shows for $0.20 only 🎉"
     if update.message:
-        await update.message.reply_text('Welcome! Click below to buy a movie.', reply_markup=reply_markup) 
+        await update.message.reply_text(message, reply_markup=reply_markup)
     elif update.callback_query:
-        await update.callback_query.message.reply_text('Welcome! Click below to buy a movie.', reply_markup=reply_markup)
+        await update.callback_query.message.reply_text(message, reply_markup=reply_markup)
 
-# Buy Movie callback handler
-async def buy_movie(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# Show details handler
+async def show_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    show_key = query.data.split('_')[1]
+    show = wwe_shows[show_key]
+
+    keyboard = [[InlineKeyboardButton("Buy", callback_data=f'buy_{show_key}')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    message = f"{show['description']}\n\n[Cover Photo]({show['cover_photo']})"
     await query.answer()
-    await query.edit_message_text(text="Processing your purchase...")
-    # Simulate processing
-    await asyncio.sleep(2)
-    await query.edit_message_text(text="Purchase complete! Enjoy your movie.")
+    await query.edit_message_text(text=message, parse_mode='Markdown', reply_markup=reply_markup)
+
+# Buy show handler
+async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    show_key = query.data.split('_')[1]
+    show = wwe_shows[show_key]
+    
+    payment = paypalrestsdk.Payment({
+        "intent": "sale",
+        "payer": {"payment_method": "paypal"},
+        "transactions": [{
+            "item_list": {
+                "items": [{"name": f"WWE {show_key}", "sku": f"WWE_{show_key}", "price": str(show['price']), "currency": "USD", "quantity": 1}]
+            },
+            "amount": {"total": str(show['price']), "currency": "USD"},
+            "description": f"Purchase of WWE {show_key}"
+        }],
+        "redirect_urls": {
+            "return_url": f"https://example.com/payment/execute?show={show_key}",
+            "cancel_url": "https://example.com/payment/cancel"
+        }
+    })
+
+    if payment.create():
+        approval_url = next(link.href for link in payment.links if link.rel == "approval_url")
+        keyboard = [[InlineKeyboardButton("Pay with PayPal", url=approval_url)]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(text="Click the button below to complete your purchase:", reply_markup=reply_markup)
+    else:
+        await query.edit_message_text(text="An error occurred while creating the payment. Please try again.")
+
+# Payment execution endpoint
+@app.route('/payment/execute', methods=['GET'])
+def execute_payment():
+    payment_id = flask_request.args.get('paymentId')
+    payer_id = flask_request.args.get('PayerID')
+    show_key = flask_request.args.get('show')
+
+    payment = paypalrestsdk.Payment.find(payment_id)
+    if payment.execute({"payer_id": payer_id}):
+        show = wwe_shows[show_key]
+        return jsonify({"message": "Payment successful!", "download_link": show["download_link"]})
+    return jsonify({"message": "Payment execution failed."}), 400
 
 # Register Handlers
 application.add_handler(CommandHandler('start', start))
-application.add_handler(CallbackQueryHandler(buy_movie, pattern='^buy_movie$'))
+application.add_handler(CallbackQueryHandler(show_details, pattern='^show_'))
+application.add_handler(CallbackQueryHandler(buy_show, pattern='^buy_'))
 
 # Initialize bot and application properly
 async def initialize():
@@ -74,7 +151,7 @@ if __name__ == '__main__':
     # Ensure the requirements are installed, e.g., `pip install -r requirements.txt`
     loop = asyncio.get_event_loop()
     loop.run_until_complete(initialize())
-    
+
     # Define the port from an environment variable provided by Render
     port = int(os.getenv('PORT', 5000))
     logger.info(f"Starting Flask app on port {port}")
