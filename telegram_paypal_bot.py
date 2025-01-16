@@ -51,16 +51,16 @@ application.add_handler(CallbackQueryHandler(buy_movie, pattern='^buy_movie$'))
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = Update.de_json(request.get_json(force=True), bot)
-    asyncio.run(application.process_update(update))
+    asyncio.create_task(application.process_update(update))
     return 'OK'
 
 async def main():
     await bot.initialize()
     await application.initialize()
     await application.start()
-    await application.updater.start_polling()
+    logger.info("Bot and application have started successfully.")
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    loop.create_task(main())
+    loop.run_until_complete(main())
     app.run(port=5000)
