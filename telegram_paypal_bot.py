@@ -19,7 +19,7 @@ if not TELEGRAM_TOKEN:
 # Flask app
 app = Flask(__name__)
 
-# HTTPX Async Client
+# HTTPX Async Client with HTTP2 support
 http_client = httpx.AsyncClient(http2=True)
 
 # Initialize Bot and Application
@@ -30,6 +30,7 @@ application = Application.builder().token(TELEGRAM_TOKEN).client(http_client).bu
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.error(msg=f'Update {update} caused error {context.error}', exc_info=True)
 
+# Add error handler
 application.add_error_handler(error_handler)
 
 # Start command handler
@@ -65,6 +66,7 @@ async def run_bot():
     logger.info("Bot and application have started successfully.")
 
 if __name__ == '__main__':
+    # Ensure the requirements are installed, e.g., `pip install -r requirements.txt`
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run_bot())
     app.run(port=5000)
