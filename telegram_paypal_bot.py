@@ -1,7 +1,8 @@
 import logging
 import asyncio
 import os
-from flask import Flask, request as flask_request
+from flask import Flask, request as flask_request, jsonify
+import paypalrestsdk
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from threading import Thread
@@ -36,6 +37,13 @@ request = HTTPXRequest(
 
 bot = Bot(token=BOT_TOKEN, request=request)
 application = Application.builder().token(BOT_TOKEN).request(request).build()
+
+# PayPal configuration
+paypalrestsdk.configure({
+    "mode": "sandbox",  # Change to "live" for production
+    "client_id": os.getenv("PAYPAL_CLIENT_ID"),
+    "client_secret": os.getenv("PAYPAL_CLIENT_SECRET")
+})
 
 # Load movies database
 movies = [
@@ -81,13 +89,81 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
         movie = next((m for m in movies if m["id"] == movie_id), None)
         if movie:
             text = f"*{movie['title']}*\n\n{movie['description']}\n\nPrice: ${movie['price']}"
-            await query.edit_message_text(text=text, parse_mode='Markdown')
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("Buy", callback_data=f"buy_{movie['id']}")]
+            ])
+            await query.edit_message_text(text=text, parse_mode='Markdown', reply_markup=keyboard)
             logger.info(f"Sent details for movie: {movie_id}")
         else:
             await query.edit_message_text(text="Movie not found.")
             logger.info(f"Movie not found: {movie_id}")
     except Exception as e:
         logger.error(f"Error in movie_details handler: {e}", exc_info=True)
+
+# Buy movie handler
+async def buy_movie(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        logger.info("Buy movie command received")
+        query = update.callback_query
+        await query.answer()
+        movie_id = query.data.split('_')[1]
+        movie = next((m for m in movies if m["id"] == movie_id), None)
+        if movie:
+            payment = paypalrestsdk.Payment({
+                "intent": "sale",
+                "payer": {
+                    "payment_method": "paypal"
+                },
+                "transactions": [{
+                    "item_list": {
+                        "items": [{
+                            "name": movie['title'],
+                            "sku": movie['id'],
+                            "price": str(movie['price']),
+                            "currency": "USD",
+                            "quantity": 1
+                        }]
+                    },
+                    "amount": {
+                        "total": str(movie['price']),
+                        "currency": "USD"
+                    },
+                    "description": f"Purchase of {movie['title']}"
+                }],
+                "redirect_urls": {
+                    "return_url": f"https://example.com/payment/execute?movie_id={movie['id']}",
+                    "cancel_url": "https://example.com/payment/cancel"
+                }
+            })
+            
+            if payment.create():
+                approval_url = next(link.href for link in payment.links if link.rel == "approval_url")
+                text = f"Click the link below to complete your purchase:\n[PayPal]({approval_url})"
+                await query.edit_message_text(text=text, parse_mode='Markdown')
+                logger.info(f"Created PayPal payment for movie: {movie_id}")
+            else:
+                text = "An error occurred while creating the payment. Please try again."
+                await query.edit_message_text(text=text)
+                logger.error(f"Could not create PayPal payment for movie: {movie_id}")
+        else:
+            await query.edit_message_text(text="Movie not found.")
+            logger.info(f"Movie not found: {movie_id}")
+    except Exception as e:
+        logger.error(f"Error in buy_movie handler: {e}", exc_info=True)
+
+# Flask endpoint for PayPal payment execution
+@app.route('/payment/execute', methods=['GET'])
+def execute_payment():
+    payment_id = flask_request.args.get('paymentId')
+    payer_id = flask_request.args.get('PayerID')
+    movie_id = flask_request.args.get('movie_id')
+
+    payment = paypalrestsdk.Payment.find(payment_id)
+    if payment.execute({"payer_id": payer_id}):
+        movie = next((m for m in movies if m["id"] == movie_id), None)
+        if movie:
+            return jsonify({"message": "Payment successful!", "download_link": movie["download_link"]})
+    return jsonify({"message": "Payment execution failed."}), 400
 
 # Flask webhook route
 @app.route('/webhook', methods=['POST'])
@@ -116,7 +192,8 @@ def webhook():
 
 # Set up handlers
 application.add_handler(CommandHandler("start", start))
-application.add_handler(CallbackQueryHandler(movie_details))
+application.add_handler(CallbackQueryHandler(movie_details, pattern='^\\d+$'))
+application.add_handler(CallbackQueryHandler(buy_movie, pattern='^buy_\\d+$'))
 
 # Function to run the bot
 async def start_bot():
