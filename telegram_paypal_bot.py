@@ -6,6 +6,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from telegram.request import HTTPXRequest
 
+
 # Configure logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -70,4 +71,8 @@ if __name__ == '__main__':
     # Ensure the requirements are installed, e.g., `pip install -r requirements.txt`
     loop = asyncio.get_event_loop()
     loop.run_until_complete(initialize())
-    app.run(port=5000)
+    
+    # Define the port from an environment variable provided by Render
+    port = int(os.getenv('PORT', 5000))
+    logger.info(f"Starting Flask app on port {port}")
+    app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
