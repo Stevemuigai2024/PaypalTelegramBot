@@ -90,7 +90,8 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if movie:
             text = f"*{movie['title']}*\n\n{movie['description']}\n\nPrice: ${movie['price']}"
             keyboard = InlineKeyboardMarkup([
-                [InlineKeyboardButton("Buy", callback_data=f"buy_{movie['id']}")]
+                [InlineKeyboardButton("Pay with PayPal", callback_data=f"buy_{movie['id']}")],
+                [InlineKeyboardButton("🔄 Start Over", callback_data="start_over")]
             ])
             await query.edit_message_text(text=text, parse_mode='Markdown', reply_markup=keyboard)
             logger.info(f"Sent details for movie: {movie_id}")
@@ -138,8 +139,11 @@ async def buy_movie(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             if payment.create():
                 approval_url = next(link.href for link in payment.links if link.rel == "approval_url")
-                text = f"Click the link below to complete your purchase:\n[PayPal]({approval_url})"
-                await query.edit_message_text(text=text, parse_mode='Markdown')
+                text = "Click the button below to complete your purchase:"
+                keyboard = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("💳 Pay with PayPal", url=approval_url)]
+                ])
+                await query.edit_message_text(text=text, parse_mode='Markdown', reply_markup=keyboard)
                 logger.info(f"Created PayPal payment for movie: {movie_id}")
             else:
                 text = "An error occurred while creating the payment. Please try again."
@@ -150,6 +154,10 @@ async def buy_movie(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.info(f"Movie not found: {movie_id}")
     except Exception as e:
         logger.error(f"Error in buy_movie handler: {e}", exc_info=True)
+
+# Restart command handler
+async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await start(update, context)
 
 # Flask endpoint for PayPal payment execution
 @app.route('/payment/execute', methods=['GET'])
@@ -194,6 +202,7 @@ def webhook():
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(movie_details, pattern='^\\d+$'))
 application.add_handler(CallbackQueryHandler(buy_movie, pattern='^buy_\\d+$'))
+application.add_handler(CallbackQueryHandler(restart, pattern='start_over'))
 
 # Function to run the bot
 async def start_bot():
