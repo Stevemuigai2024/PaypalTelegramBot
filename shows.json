@@ -1,13 +1,13 @@
 {
     "RAW": {
         "description": "Watch the latest episodes of WWE RAW!",
-        "cover_photo": "link_to_raw_cover_photo",
+        "cover_photo": "https://drive.google.com/file/d/1O6KkOZewqX9XyCuC4ibRsBnQVZ0JrLBa/view?usp=sharing",
         "price": 0.20,
         "download_link": "link_to_raw_download"
     },
     "SMACKDOWN": {
         "description": "Enjoy the thrilling episodes of WWE SMACKDOWN!",
-        "cover_photo": "link_to_smackdown_cover_photo",
+        "cover_photo": "https://drive.google.com/file/d/1dZS0xTVvX-ZKYCHjtby-C5jnZ5bUpldU/view?usp=sharing",
         "price": 0.20,
         "download_link": "link_to_smackdown_download"
     }
