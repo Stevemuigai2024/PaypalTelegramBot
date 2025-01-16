@@ -7,7 +7,7 @@ from telegram.ext import Application, CallbackQueryHandler, CommandHandler, Cont
 from telegram.request import HTTPXRequest
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='% (asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token from environment variable
@@ -19,8 +19,8 @@ if not TELEGRAM_TOKEN:
 # Flask app
 app = Flask(__name__)
 
-# HTTPX Async Client with HTTP2 support
-request = HTTPXRequest(http2=True)
+# HTTPX Async Client
+request = HTTPXRequest()
 
 # Initialize Bot and Application
 bot = Bot(token=TELEGRAM_TOKEN, request=request)
