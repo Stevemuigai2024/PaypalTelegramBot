@@ -3,10 +3,10 @@ import asyncio
 import os
 import json
 from flask import Flask, request as flask_request, jsonify
+import paypalrestsdk
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from telegram.request import HTTPXRequest
-import paypalrestsdk
 
 # Configure logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -142,10 +142,11 @@ if __name__ == '__main__':
     # Define the port from an environment variable provided by Render
     port_env = os.getenv('PORT')
     if port_env:
-        port=int(port_env)
-        logger.info(f"PORT environment variable is set to {port}")
+        port = int(port_env)
+        logger.info(f"PORT environment variable found: {port}")
     else:
         port = 10000 
-        
+        logger.info(f"No PORT environment variable found. Defaulting to {port}")
+
     logger.info(f"Starting Flask app on port {port}")
     app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
