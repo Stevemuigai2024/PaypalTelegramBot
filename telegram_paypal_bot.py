@@ -10,7 +10,7 @@ from telegram.request import HTTPXRequest
 import httpx
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(level)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token and PayPal settings from environment variable
@@ -25,12 +25,12 @@ PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 # Flask app
 app = Flask(__name__)
 
-# HTTPX Async Client with increased pool settings
-client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=50, max_connections=200), timeout=httpx.Timeout(20.0))
+# HTTPX Async Client with increased pool limits and timeout
+client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=100, max_connections=500), timeout=httpx.Timeout(30.0))
 
 # Initialize Bot and Application using HTTPXRequest with the custom client
-request = HTTPXRequest()
-bot = Bot(token=TELEGRAM_TOKEN)
+request = HTTPXRequest(http_version="1.1")
+bot = Bot(token=TELEGRAM_TOKEN, request=request)
 application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
 
 # PayPal configuration
