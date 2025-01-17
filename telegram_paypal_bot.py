@@ -132,17 +132,12 @@ async def initialize():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = Update.de_json(flask_request.get_json(force=True), bot)
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    loop.run_until_complete(application.process_update(update))
-    loop.close()  # Ensuring loop closure to avoid errors.
+    asyncio.run(application.process_update(update))
     return 'OK'
 
 if __name__ == '__main__':
     # Ensure the requirements are installed, e.g., `pip install -r requirements.txt`
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(initialize())
+    asyncio.run(initialize())
 
     # Define the port from an environment variable provided by Render
     port = int(os.getenv('PORT', 5000))
