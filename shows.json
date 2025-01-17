@@ -1,13 +1,13 @@
 {
     "RAW": {
         "description": "Watch the latest episodes of WWE RAW!",
-        "cover_photo": "https://i.imgur.com/kN29T7B.jpg",
+        "cover_photo": "https://imgur.com/NkLethP",
         "price": 0.20,
         "download_link": "link_to_raw_download"
     },
     "SMACKDOWN": {
         "description": "Enjoy the thrilling episodes of WWE SMACKDOWN!",
-        "cover_photo": "https://i.imgur.com/39t0bJh.jpg",
+        "cover_photo": "https://imgur.com/4nB2Eh6",
         "price": 0.20,
         "download_link": "link_to_smackdown_download"
     }
