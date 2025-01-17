@@ -12,7 +12,7 @@ import paypalrestsdk
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Telegram Bot Token and PayPal settings from environment variables
+# Telegram Bot Token and PayPal settings from environment variable
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 if not TELEGRAM_TOKEN:
     logger.error("Telegram bot token not found. Please set the TELEGRAM_BOT_TOKEN environment variable.")
@@ -140,11 +140,7 @@ if __name__ == '__main__':
     asyncio.run(initialize())
 
     # Define the port from an environment variable provided by Render
-    port = int(os.getenv('PORT', 5000))
+    port = int(os.getenv('PORT', 5000)) or 10000  # Fallback to 10000 if PORT is not set
     
-    # Bind to the specified port
-    if port is None or port == '':
-        port = 10000
-
     logger.info(f"Starting Flask app on port {port}")
     app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
