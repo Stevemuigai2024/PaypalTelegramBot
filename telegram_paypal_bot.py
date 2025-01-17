@@ -9,7 +9,7 @@ from telegram.request import HTTPXRequest
 import paypalrestsdk
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(level)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token and PayPal settings from environment variable
@@ -79,7 +79,7 @@ async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     show_key = query.data.split('_')[1]
     show = wwe_shows[show_key]
-    
+
     payment = paypalrestsdk.Payment({
         "intent": "sale",
         "payer": {"payment_method": "paypal"},
@@ -102,7 +102,7 @@ async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Click the button below to complete your purchase:", reply_markup=reply_markup)
     else:
-        await query.edit_message_text(text="An error occurred while creating the payment. Please try again.")
+        await query.edit_message_text(text="An error occurred while creating the payment. Please try again overleaf.")
 
 # Payment execution endpoint
 @app.route('/payment/execute', methods=['GET'])
