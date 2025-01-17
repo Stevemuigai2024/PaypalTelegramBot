@@ -94,7 +94,7 @@ async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
     })
 
-    if payment.create(): 
+    if payment.create():
         approval_url = next(link.href for link in payment.links if link.rel == "approval_url")
         keyboard = [[InlineKeyboardButton("Pay with PayPal", url=approval_url)]]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -139,17 +139,9 @@ def webhook():
     return 'OK'
 
 if __name__ == '__main__':
-    # Ensure the requirements are installed, e.g., `pip install -r requirements.txt`
     asyncio.run(initialize())
-
+    
     # Define the port from an environment variable provided by Render
-    port_env = os.getenv('PORT')
-    if port_env:
-        port = int(port_env)
-        logger.info(f'PORT environment variable found: {port}')
-    else:
-        port = 10000 
-        logger.info(f'No PORT environment variable found. Defaulting to {port}')
-
-    logger.info(f'Starting Flask app on port {port}')
+    port = int(os.getenv('PORT', 10000))
+    logger.info(f"Starting Flask app on port {port}")
     app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
