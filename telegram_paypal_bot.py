@@ -10,7 +10,7 @@ from telegram.request import HTTPXRequest
 import httpx
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(level)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token and PayPal settings from environment variable
@@ -29,8 +29,8 @@ app = Flask(__name__)
 client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=100, max_connections=500), timeout=httpx.Timeout(30.0))
 
 # Initialize Bot and Application using HTTPXRequest with the custom client
-request = HTTPXRequest(http_version="1.1")
-bot = Bot(token=TELEGRAM_TOKEN, request=request)
+request = HTTPXRequest()
+bot = Bot(token=TELEGRAM_TOKEN)
 application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
 
 # PayPal configuration
@@ -156,4 +156,4 @@ if __name__ == '__main__':
         logger.info(f'No PORT environment variable found. Defaulting to {port}')
 
     logger.info(f'Starting Flask app on port {port}')
-    app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
+    app.run(host='0.0.0.0', port=port)  # Bind to allow external connections
