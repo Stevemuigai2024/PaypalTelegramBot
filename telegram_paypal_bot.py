@@ -6,6 +6,8 @@ from flask import Flask, request as flask_request, jsonify
 import paypalrestsdk
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram.request import HTTPXRequest
+import httpx
 
 # Configure logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -23,8 +25,11 @@ PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 # Flask app
 app = Flask(__name__)
 
-# Initialize Bot and Application
-bot = Bot(token=TELEGRAM_TOKEN)
+# HTTPX Async Client with customized pool settings
+client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=10, max_connections=100), timeout=httpx.Timeout(10.0))
+
+# Initialize Bot and Application using default HTTPX request
+bot = Bot(token=TELEGRAM_TOKEN, request=HTTPXRequest(client=client))
 application = Application.builder().token(TELEGRAM_TOKEN).build()
 
 # PayPal configuration
