@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import os
+import gc
 import json
 from flask import Flask, request as flask_request, jsonify
 import paypalrestsdk
@@ -25,9 +26,13 @@ PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 # Flask app
 app = Flask(__name__)
 
-# Initialize Bot and Application using default settings
+# HTTPX Async Client with increased pool limits and timeout
+client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=100, max_connections=500), timeout=httpx.Timeout(30.0))
+
+# Initialize Bot and Application using HTTPXRequest with the custom client
+request = HTTPXRequest()
 bot = Bot(token=TELEGRAM_TOKEN)
-application = Application.builder().token(TELEGRAM_TOKEN).build()
+application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
 
 # PayPal configuration
 paypalrestsdk.configure({
@@ -136,11 +141,19 @@ def webhook():
     
     loop.run_until_complete(application.process_update(update))
     loop.close()  # Close the event loop to avoid runtime errors
+
+    # Clear memory after processing each update
+    clear_memory()
+    
     return 'OK'
+
+def clear_memory():
+    gc.collect()
+    logger.info("Memory cleared to prevent overload.")
 
 if __name__ == '__main__':
     asyncio.run(initialize())
-    
+
     # Define the port from an environment variable provided by Render
     port = int(os.getenv('PORT', 10000))
     logger.info(f"Starting Flask app on port {port}")
