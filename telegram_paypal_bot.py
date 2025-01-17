@@ -140,7 +140,12 @@ if __name__ == '__main__':
     asyncio.run(initialize())
 
     # Define the port from an environment variable provided by Render
-    port = int(os.getenv('PORT', 5000)) or 10000  # Fallback to 10000 if PORT is not set
-    
+    port_env = os.getenv('PORT')
+    if port_env:
+        port=int(port_env)
+        logger.info(f"PORT environment variable is set to {port}")
+    else:
+        port = 10000 
+        
     logger.info(f"Starting Flask app on port {port}")
     app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
