@@ -25,9 +25,13 @@ PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 # Flask app
 app = Flask(__name__)
 
-# Initialize Bot and Application using default settings
+# HTTPX Async Client with increased pool settings
+client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=50, max_connections=200), timeout=httpx.Timeout(20.0))
+
+# Initialize Bot and Application using HTTPXRequest with the custom client
+request = HTTPXRequest()
 bot = Bot(token=TELEGRAM_TOKEN)
-application = Application.builder().token(TELEGRAM_TOKEN).build()
+application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
 
 # PayPal configuration
 paypalrestsdk.configure({
