@@ -3,13 +3,14 @@ import asyncio
 import os
 import json
 from flask import Flask, request as flask_request, jsonify
-import paypalrestsdk
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from telegram.request import HTTPXRequest
+import paypalrestsdk
+import httpx
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelnonelevel)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token and PayPal settings from environment variable
@@ -24,8 +25,8 @@ PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 # Flask app
 app = Flask(__name__)
 
-# HTTPX Async Client
-request = HTTPXRequest()
+# HTTPX Async Client with customized pool settings
+request = HTTPXRequest(client=httpx.AsyncClient(pool_limits=httpx.PoolLimits(max_keepalive=10, max_connections=100), timeout=httpx.Timeout(10.0)))
 
 # Initialize Bot and Application
 bot = Bot(token=TELEGRAM_TOKEN, request=request)
