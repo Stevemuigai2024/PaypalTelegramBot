@@ -138,13 +138,9 @@ def webhook():
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    
     loop.run_until_complete(application.process_update(update))
-    loop.close()  # Close the event loop to avoid runtime errors
-
-    # Clear memory after processing each update
+    loop.close()
     clear_memory()
-    
     return 'OK'
 
 def clear_memory():
@@ -153,8 +149,9 @@ def clear_memory():
 
 if __name__ == '__main__':
     asyncio.run(initialize())
-
-    # Define the port from an environment variable provided by Render
-    port = int(os.getenv('PORT', 10000))
-    logger.info(f"Starting Flask app on port {port}")
-    app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
+    port = int(os.getenv('PORT', '5000'))  # Default to 5000 if not set
+    if not port:
+        logger.error("No port detected. Please set the PORT environment variable.")
+    else:
+        logger.info(f"Starting Flask app on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=True)  # Enabled debug mode for testing
