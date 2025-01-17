@@ -29,7 +29,7 @@ request = HTTPXRequest()
 
 # Initialize Bot and Application
 bot = Bot(token=TELEGRAM_TOKEN, request=request)
-application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
+application = Application.builder().set_token(TELEGRAM_TOKEN).request(request).build()
 
 # PayPal configuration
 paypalrestsdk.configure({
@@ -102,7 +102,7 @@ async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(text="Click the button below to complete your purchase:", reply_markup=reply_markup)
     else:
-        await query.edit_message_text(text="An error occurred while creating the payment. Please try again overleaf.")
+        await query.edit_message_text(text="An error occurred while creating the payment. Please try again.")
 
 # Payment execution endpoint
 @app.route('/payment/execute', methods=['GET'])
@@ -132,8 +132,11 @@ async def initialize():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = Update.de_json(flask_request.get_json(force=True), bot)
+
+    # Set up a new event loop for the current thread
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+    
     loop.run_until_complete(application.process_update(update))
     return 'OK'
 
