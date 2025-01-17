@@ -6,6 +6,8 @@ from flask import Flask, request as flask_request, jsonify
 import paypalrestsdk
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram.request import HTTPXRequest
+import httpx
 
 # Configure logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -128,7 +130,12 @@ async def initialize():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = Update.de_json(flask_request.get_json(force=True), bot)
-    asyncio.run(application.process_update(update))
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    loop.run_until_complete(application.process_update(update))
+    loop.close()  # Close the event loop to avoid runtime errors
     return 'OK'
 
 if __name__ == '__main__':
