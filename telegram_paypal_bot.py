@@ -10,7 +10,7 @@ from telegram.request import HTTPXRequest
 import httpx
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelnonelevel)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token and PayPal settings from environment variable
@@ -29,7 +29,7 @@ app = Flask(__name__)
 async_client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=10, max_connections=100), timeout=httpx.Timeout(10.0))
 
 # Initialize Bot and Application
-bot = Bot(token=TELEGRAM_TOKEN)
+bot = Bot(token=TELEGRAM_TOKEN, request=HTTPXRequest(client=async_client))
 application = Application.builder().token(TELEGRAM_TOKEN).request(HTTPXRequest(client=async_client)).build()
 
 # PayPal configuration
@@ -97,7 +97,7 @@ async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
     })
 
-    if payment.create():
+    if payment.create(): 
         approval_url = next(link.href for link in payment.links if link.rel == "approval_url")
         keyboard = [[InlineKeyboardButton("Pay with PayPal", url=approval_url)]]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -115,8 +115,8 @@ def execute_payment():
     payment = paypalrestsdk.Payment.find(payment_id)
     if payment.execute({"payer_id": payer_id}):
         show = wwe_shows[show_key]
-        return jsonify({"message": "Payment successful!", "download_link": show["download_link"]})
-    return jsonify({"message": "Payment execution failed."}), 400
+        return jsonify({'message': 'Payment successful!', 'download_link': show['download_link']})
+    return jsonify({'message': 'Payment execution failed.'}), 400
 
 # Register Handlers
 application.add_handler(CommandHandler('start', start))
@@ -128,7 +128,7 @@ async def initialize():
     await bot.initialize()
     await application.initialize()
     await application.start()
-    logger.info("Bot and application have started successfully.")
+    logger.info('Bot and application have started successfully.')
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -144,10 +144,10 @@ if __name__ == '__main__':
     port_env = os.getenv('PORT')
     if port_env:
         port = int(port_env)
-        logger.info(f"PORT environment variable found: {port}")
+        logger.info(f'PORT environment variable found: {port}')
     else:
         port = 10000 
-        logger.info(f"No PORT environment variable found. Defaulting to {port}")
+        logger.info(f'No PORT environment variable found. Defaulting to {port}')
 
-    logger.info(f"Starting Flask app on port {port}")
+    logger.info(f'Starting Flask app on port {port}')
     app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
