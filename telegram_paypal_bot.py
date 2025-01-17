@@ -1,14 +1,15 @@
 import logging
 import asyncio
 import os
-from flask import Flask, request as flask_request
+import json
+from flask import Flask, request as flask_request, jsonify
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 from telegram.request import HTTPXRequest
 import paypalrestsdk
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(level)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token and PayPal settings from environment variable
@@ -37,20 +38,9 @@ paypalrestsdk.configure({
     "client_secret": PAYPAL_CLIENT_SECRET
 })
 
-wwe_shows = {
-    "RAW": {
-        "description": "Watch the latest episodes of WWE RAW!",
-        "cover_photo": "link_to_raw_cover_photo",
-        "price": 0.20,
-        "download_link": "link_to_raw_download"
-    },
-    "SMACKDOWN": {
-        "description": "Enjoy the thrilling episodes of WWE SMACKDOWN!",
-        "cover_photo": "link_to_smackdown_cover_photo",
-        "price": 0.20,
-        "download_link": "link_to_smackdown_download"
-    }
-}
+# Load shows data from JSON file
+with open('shows.json', 'r') as f:
+    wwe_shows = json.load(f)
 
 # Error Handler
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
