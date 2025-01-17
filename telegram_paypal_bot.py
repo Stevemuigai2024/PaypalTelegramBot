@@ -29,7 +29,7 @@ request = HTTPXRequest()
 
 # Initialize Bot and Application
 bot = Bot(token=TELEGRAM_TOKEN, request=request)
-application = Application.builder().set_token(TELEGRAM_TOKEN).request(request).build()
+application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
 
 # PayPal configuration
 paypalrestsdk.configure({
@@ -70,7 +70,7 @@ async def show_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [[InlineKeyboardButton("Buy", callback_data=f'buy_{show_key}')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    message = f"{show['description']}\n\n[Cover Photo]({show['cover_photo']})"
+    message = f"{show['description']}\n\n![Cover Photo]({show['cover_photo']})"
     await query.answer()
     await query.edit_message_text(text=message, parse_mode='Markdown', reply_markup=reply_markup)
 
