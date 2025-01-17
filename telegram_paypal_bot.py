@@ -27,15 +27,11 @@ PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 app = Flask(__name__)
 
 # HTTPX Async Client with increased pool limits and timeout
-client = httpx.AsyncClient(
-    limits=httpx.Limits(max_keepalive_connections=200, max_connections=1000),
-    timeout=httpx.Timeout(60.0),
-    headers={"Connection": "keep-alive"}
-)
+client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=100, max_connections=500), timeout=httpx.Timeout(30.0))
 
 # Initialize Bot and Application using HTTPXRequest with the custom client
 request = HTTPXRequest()
-bot = Bot(token=TELEGRAM_TOKEN, request=request)
+bot = Bot(token=TELEGRAM_TOKEN)
 application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
 
 # PayPal configuration
@@ -142,10 +138,13 @@ def webhook():
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+    
     loop.run_until_complete(application.process_update(update))
-    loop.close()
+    loop.close()  # Close the event loop to avoid runtime errors
 
+    # Clear memory after processing each update
     clear_memory()
+    
     return 'OK'
 
 def clear_memory():
@@ -154,6 +153,8 @@ def clear_memory():
 
 if __name__ == '__main__':
     asyncio.run(initialize())
+
+    # Define the port from an environment variable provided by Heroku
     port = int(os.getenv('PORT', 10000))
     logger.info(f"Starting Flask app on port {port}")
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
