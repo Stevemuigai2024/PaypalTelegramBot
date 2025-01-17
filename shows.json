@@ -1,13 +1,13 @@
 {
     "RAW": {
         "description": "Watch the latest episodes of WWE RAW!",
-        "cover_photo": "https://500px.com/photo/1107371577/raw-neflix-by-stephen-muigai",
+        "cover_photo": "https://i.imgur.com/kN29T7B.jpg",
         "price": 0.20,
         "download_link": "link_to_raw_download"
     },
     "SMACKDOWN": {
         "description": "Enjoy the thrilling episodes of WWE SMACKDOWN!",
-        "cover_photo": "https://500px.com/photo/1107371599/wwe-smackdown-2024-wallpaper-4k-by-stephen-muigai",
+        "cover_photo": "https://i.imgur.com/39t0bJh.jpg",
         "price": 0.20,
         "download_link": "link_to_smackdown_download"
     }
