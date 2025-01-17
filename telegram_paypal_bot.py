@@ -132,12 +132,11 @@ async def initialize():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = Update.de_json(flask_request.get_json(force=True), bot)
-
-    # Set up a new event loop for the current thread
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    
+
     loop.run_until_complete(application.process_update(update))
+    loop.close()  # Ensuring loop closure to avoid errors.
     return 'OK'
 
 if __name__ == '__main__':
