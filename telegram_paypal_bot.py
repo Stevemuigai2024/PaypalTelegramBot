@@ -6,11 +6,9 @@ from flask import Flask, request as flask_request, jsonify
 import paypalrestsdk
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
-from telegram.request import HTTPRequest
-import httpx
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(level)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token and PayPal settings from environment variable
@@ -25,15 +23,9 @@ PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
 # Flask app
 app = Flask(__name__)
 
-# HTTPX Async Client with customized pool settings
-client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=10, max_connections=100), timeout=httpx.Timeout(10.0))
-
-# Initialize HTTPRequest without passing client directly
-request = HTTPRequest()
-
-# Initialize Bot and Application with default request
-bot = Bot(token=TELEGRAM_TOKEN, request=request)
-application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
+# Initialize Bot and Application
+bot = Bot(token=TELEGRAM_TOKEN)
+application = Application.builder().token(TELEGRAM_TOKEN).build()
 
 # PayPal configuration
 paypalrestsdk.configure({
@@ -149,7 +141,7 @@ if __name__ == '__main__':
         port = int(port_env)
         logger.info(f"PORT environment variable found: {port}")
     else:
-        port = 10000 
+        port = 10000
         logger.info(f"No PORT environment variable found. Defaulting to {port}")
 
     logger.info(f"Starting Flask app on port {port}")
