@@ -7,7 +7,7 @@
     },
     "SMACKDOWN": {
         "description": "Enjoy the thrilling episodes of WWE SMACKDOWN!",
-        "cover_photo": "https://imgur.com/4nB2Eh6",
+        "cover_photo": "",
         "price": 0.20,
         "download_link": "link_to_smackdown_download"
     }
