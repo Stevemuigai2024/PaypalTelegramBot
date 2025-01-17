@@ -11,7 +11,7 @@ from telegram.request import HTTPXRequest
 import httpx
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(level)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Telegram Bot Token and PayPal settings from environment variable
@@ -99,7 +99,7 @@ async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
     })
 
-    if payment.create():
+    if payment.create(): 
         approval_url = next(link.href for link in payment.links if link.rel == "approval_url")
         keyboard = [[InlineKeyboardButton("Pay with PayPal", url=approval_url)]]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -154,7 +154,11 @@ def clear_memory():
 if __name__ == '__main__':
     asyncio.run(initialize())
 
-    # Define the port from an environment variable provided by Heroku
-    port = int(os.getenv('PORT', 10000))
+    # Define the port from an environment variable provided by Render
+    def get_port():
+        return int(os.getenv('PORT', 10000))
+
+    port = get_port()  # Automatically detect and use the port
+
     logger.info(f"Starting Flask app on port {port}")
     app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
