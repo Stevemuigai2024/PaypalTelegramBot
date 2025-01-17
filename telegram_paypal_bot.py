@@ -34,7 +34,7 @@ client = httpx.AsyncClient(
 )
 
 # Initialize Bot and Application using HTTPXRequest with the custom client
-request = HTTPXRequest(client=client)
+request = HTTPXRequest()
 bot = Bot(token=TELEGRAM_TOKEN, request=request)
 application = Application.builder().token(TELEGRAM_TOKEN).request(request).build()
 
