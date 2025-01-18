@@ -1,2 +1,2 @@
-web: python bot.py
+web: telegram_paypal_bot.py
 
