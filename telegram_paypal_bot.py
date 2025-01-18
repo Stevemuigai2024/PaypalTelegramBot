@@ -3,7 +3,6 @@ import asyncio
 import os
 import gc
 import json
-from flask import Flask, request as flask_request, jsonify
 import paypalrestsdk
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
@@ -22,9 +21,6 @@ if not TELEGRAM_TOKEN:
 
 PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
 PAYPAL_CLIENT_SECRET = os.getenv('PAYPAL_CLIENT_SECRET')
-
-# Flask app
-app = Flask(__name__)
 
 # HTTPX Async Client with increased pool limits and timeout
 client = httpx.AsyncClient(limits=httpx.Limits(max_keepalive_connections=100, max_connections=500), timeout=httpx.Timeout(30.0))
@@ -107,19 +103,6 @@ async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await query.edit_message_text(text="An error occurred while creating the payment. Please try again.")
 
-# Payment execution endpoint
-@app.route('/payment/execute', methods=['GET'])
-def execute_payment():
-    payment_id = flask_request.args.get('paymentId')
-    payer_id = flask_request.args.get('PayerID')
-    show_key = flask_request.args.get('show')
-
-    payment = paypalrestsdk.Payment.find(payment_id)
-    if payment.execute({"payer_id": payer_id}):
-        show = wwe_shows[show_key]
-        return jsonify({'message': 'Payment successful!', 'download_link': show['download_link']})
-    return jsonify({'message': 'Payment execution failed.'}), 400
-
 # Register Handlers
 application.add_handler(CommandHandler('start', start))
 application.add_handler(CallbackQueryHandler(show_details, pattern='^show_'))
@@ -132,33 +115,15 @@ async def initialize():
     await application.start()
     logger.info('Bot and application have started successfully.')
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    update = Update.de_json(flask_request.get_json(force=True), bot)
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
-    loop.run_until_complete(application.process_update(update))
-    loop.close()  # Close the event loop to avoid runtime errors
-
-    # Clear memory after processing each update
-    clear_memory()
-    
-    return 'OK'
-
 def clear_memory():
     gc.collect()
     logger.info("Memory cleared to prevent overload.")
 
+async def main():
+    await initialize()
+    while True:
+        await asyncio.sleep(3600)  # Keep the worker running
+        clear_memory()
+
 if __name__ == '__main__':
-    asyncio.run(initialize())
-
-    # Define the port from an environment variable provided by Render
-    def get_port():
-        return int(os.getenv('PORT', 10000))
-
-    port = get_port()  # Automatically detect and use the port
-
-    logger.info(f"Starting Flask app on port {port}")
-    app.run(host='0.0.0.0', port=port)  # Bind to 0.0.0.0 to allow external connections
+    asyncio.run(main())
