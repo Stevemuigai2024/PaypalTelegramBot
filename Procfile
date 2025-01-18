@@ -1,1 +1,2 @@
-web: python telegram_paypal_bot.py
+worker: python telegram_paypal_bot.py
+
