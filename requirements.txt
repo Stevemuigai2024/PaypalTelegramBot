@@ -1,7 +1,6 @@
 python-telegram-bot==20.3
 paypalrestsdk==1.13.3
-python-dotenv
-httpx[http2]
-Flask[async]
-flask
-logging
+gunicorn==20.1.0
+httpx==0.21.1
+Flask==2.1.1
+
