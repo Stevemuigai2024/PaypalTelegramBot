@@ -11,10 +11,10 @@ from telegram.request import HTTPXRequest
 import httpx
 
 # Configure logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(level)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Telegram Bot Token and PayPal settings from environment variable
+# Telegram Bot Token and PayPal settings from environment variables
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 if not TELEGRAM_TOKEN:
     logger.error("Telegram bot token not found. Please set the TELEGRAM_BOT_TOKEN environment variable.")
@@ -99,7 +99,7 @@ async def buy_show(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
     })
 
-    if payment.create(): 
+    if payment.create():
         approval_url = next(link.href for link in payment.links if link.rel == "approval_url")
         keyboard = [[InlineKeyboardButton("Pay with PayPal", url=approval_url)]]
         reply_markup = InlineKeyboardMarkup(keyboard)
